@@ -88,27 +88,26 @@ preamble = do
   put "class TIM { static void Main() {"
   put "var s=new Stack<C>();"
   put "var t=new Stack<ulong>();"
-  put "C[] f=null;"
-  put "C[] d=null;"
+  put "C[]f=null;"
+  put "C[]d=null;"
   put "uint j;"
 
 retCode :: CSW
 retCode = do
   put "r:"
-  put "if (s.Count == 0) {"
+  put "if(s.Count==0){"
   put "foreach (var x in t)"
   put "Console.WriteLine(x);"
-  put "return; }"
-  put "else {"
+  put "return;}else{"
   put "j=s.Peek().c;"
   put "f=s.Pop().f;"
   put "goto j;"
-  put " }"
+  put "}"
 
 jumpTable :: Int -> CSW
 jumpTable n = do
   put "j:"
-  put "switch (j) {"
+  put "switch(j){"
   forM [0..n] $ \i ->
     put $ "case " ++ show i ++ ":goto c" ++ show i ++ ";"
   put "}"
