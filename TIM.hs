@@ -2,6 +2,12 @@
              LiberalTypeSynonyms, Rank2Types #-}
 module Core.TIM where
 
+-- ‘Three Instruction Machine’, so called because it operates on three
+-- dominent instructions: Take, Move and Enter. The second half of this file
+-- is an example state machine implementation the TIM instruction set, but
+-- this is not needed when only compiling (eg. see FTIM which is based on the
+-- output of this compiler).
+
 import Prelude hiding (or, lookup)
 
 import Control.Applicative
@@ -16,8 +22,6 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Core.Common
-
--- Three available instructions
 
 data Instr
   = Take Int Int -- Take n items off the stack and store them in a new frame

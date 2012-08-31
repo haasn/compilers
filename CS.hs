@@ -1,5 +1,8 @@
 module Core.CS where
 
+-- C# code generator, this re-uses about half of the FTIM generator but sticks
+-- with labels instead of code addresses because C# has its own labels/jumps.
+
 import Core.Common
 import Core.TIM (store, compile)
 import Core.TIM.Flatten

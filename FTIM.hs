@@ -1,6 +1,10 @@
 {-# LANGUAGE TemplateHaskell, Rank2Types #-}
 module Core.FTIM where
 
+-- Simulate a simple state machine with two stacks, three registers
+-- and a heap, this has no real use other than testing that the code
+-- generators work correctly.
+
 import Core.Common (Tag)
 import Core.TIM.Flatten
 

@@ -1,6 +1,9 @@
 {-# LANGUAGE TemplateHaskell, DeriveFunctor #-}
 module Core.TIM.Flatten where
 
+-- Compiler for a low level flattened TIM with a sequential code block and
+-- simpler instructions, with no special addressing modes.
+
 import Core.Common
 import Core.TIM hiding (code)
 
@@ -19,6 +22,9 @@ import qualified Data.Sequence as Seq
 
 type FCode a = [FInstr a]
 type FAddr   = Int
+
+-- Parametric in address type because we use labels during code generation
+-- and then switch to addresses once everything's assembled into place.
 
 data FInstr addr
   -- Build new frame from stack

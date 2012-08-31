@@ -1,5 +1,7 @@
 module Core.Common where
 
+-- Shared ADT for Core source code
+
 type Name  = String
 type Tag   = Int
 type Arity = Int
