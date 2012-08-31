@@ -94,13 +94,13 @@ runPush n = do
 runStore :: Int -> Addr -> Eval
 runStore n c = do
   a <- use fptr
-  heap.at a.mapped.ix n .= (c,a)
+  heap.traverseAt a.ix n .= (c,a)
 
 runCopy :: Int -> Int -> Eval
 runCopy n m = do
   a <- use fptr
   d <- use dptr >>= deref
-  heap.at a.mapped.ix n .= d!n
+  heap.traverseAt a.ix n .= d!n
 
 runEnter :: Int -> Eval
 runEnter n = do
