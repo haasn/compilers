@@ -57,7 +57,7 @@ example7 = CoreProgram
     [ Match 1 [] (Free "y")
     , Match 0 [] (Free "false")
     ])
-  , ScDef "main" [] (App (App (Free "and") (Free "true")) (Free "false"))
+  , ScDef "main" [] (App (App (Free "and") (Free "true")) (Free "true"))
   ]
 
 example8 :: CoreProgram
@@ -68,5 +68,5 @@ example8 = CoreProgram
     [ Match 0 [] (Free "zero")
     , Match 1 ["x", "xs"] (App (Free "succ") (App (Free "length") (Free "xs")))
     ])
-  , ScDef "main" [] (Constr 0 0)
+  , ScDef "main" [] (App (Free "length") (Constr 0 0))
   ]

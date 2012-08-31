@@ -46,6 +46,7 @@ data FInstr addr
 
 data FStore addr = FS
   { _label     :: addr
+  , _counter   :: Int
   , _fragments :: Map addr (FCode addr)
   }
 
@@ -85,21 +86,24 @@ translate i = case i of
 flatten :: Map Name Code -> Map Name (FCode Name)
 flatten m = execState (itraverse go m) initial ^. fragments
   where
-    initial = FS "" Map.empty
+    initial = FS "" 0 Map.empty
 
     go n c = do
-      label .= n
-      code  <- mapM translate . fromJust $ m^.at n
+      label     .= n
+      counter   .= 0
+      code      <- mapM translate . fromJust $ m^.at n
       fragments %= Map.insert n code
 
 -- Register an anonymous code fragment with the current label
 
 anon :: Code -> State (FStore Name) Name
 anon c = do
-  fresh     <- label <%= (++ "'")
+  base      <- use label
+  fresh     <- counter <+= 1
+  let name = base ++ show fresh
   code      <- mapM translate c
-  fragments %= Map.insert fresh code
-  return fresh
+  fragments %= Map.insert name code
+  return name
 
 -- Assert invariant
 
