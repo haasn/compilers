@@ -1,7 +1,7 @@
 module Core.Common where
 
 type Name  = String
-type Tag   = Integer
+type Tag   = Int
 type Arity = Int
 
 -- A program is just a list of definitions

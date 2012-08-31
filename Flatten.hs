@@ -9,6 +9,8 @@ import Core.Examples
 import Control.Applicative
 import Control.Lens
 import Control.Monad.State
+import Data.Array (Array, listArray)
+import Data.Foldable (toList)
 import Data.Map (Map)
 import Data.Maybe (fromJust)
 import Data.Sequence (Seq)
@@ -52,7 +54,7 @@ makeLenses ''FStore
 -- Assemble a TIM down to a flat sequence
 
 assemble :: TIM -> Seq (FInstr FAddr)
-assemble tim = mapped.mapped %~ replace m $ s
+assemble tim = FJump (replace m "main") Seq.<| (mapped.mapped %~ replace m) s
   where (m, s) = concatStore . fmap invariant . flatten $ tim^.store
 
 -- Translate to the lower level instruction type
@@ -118,14 +120,18 @@ concatStore = go Map.empty Seq.empty . Map.toList
   where
     go m s [] = (m, s)
     go m s ((n, c):cs) =
-      go (Map.insert n (Seq.length s) m) (s Seq.>< Seq.fromList c) cs
+      -- The +1 is to make room for the FJump at the start
+      go (Map.insert n (Seq.length s + 1) m) (s Seq.>< Seq.fromList c) cs
 
 replace :: Ord a => Map a b -> a -> b
 replace m = fromJust . (`Map.lookup` m)
 
 -- Testing
 
-test = assemble
+seqToArray :: Seq a -> Array Int a
+seqToArray s = listArray (0, Seq.length s - 1) (toList s)
+
+test = seqToArray . assemble
 
 test1 = test (compile example1)
 test2 = test (compile example2)
