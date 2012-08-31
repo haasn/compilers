@@ -135,19 +135,3 @@ concatStore = go Map.empty Seq.empty . Map.toList
 
 replace :: Ord a => Map a b -> a -> b
 replace m = fromJust . (`Map.lookup` m)
-
--- Testing
-
-seqToArray :: Seq a -> Array Int a
-seqToArray s = listArray (0, Seq.length s - 1) (toList s)
-
-test = seqToArray . assemble
-
-test1 = test (compile example1)
-test2 = test (compile example2)
-test3 = test (compile example3)
-test4 = test (compile example4)
-test5 = test (compile example5)
-test6 = test (compile example6)
-test7 = test (compile example7)
-test8 = test (compile example8)
