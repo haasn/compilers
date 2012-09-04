@@ -41,6 +41,8 @@ data Match = Match
 -- A basic prelude
 
 prelude :: [ScDef]
+prelude = []
+{-
 prelude =
   [ ScDef "I" ["x"] $ Free "x"
   , ScDef "K" ["x", "y"] $ Free "x"
@@ -49,3 +51,4 @@ prelude =
                                  (App (Free "g") (Free "x"))
   , ScDef "compose" ["f", "g", "x"] $ App (Free "f") (App (Free "g") (Free "x"))
   ]
+-}
