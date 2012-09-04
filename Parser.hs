@@ -5,7 +5,7 @@ import Text.Parsec         hiding (space)
 import Text.Parsec.Expr
 import Text.Parsec.Language (haskellStyle)
 import Text.Parsec.String
-import qualified Text.Parsec.Token as P
+import qualified Text.Parsec.Token as T
 
 import Core.Common
 
@@ -14,20 +14,19 @@ parse = runParser coreProgram () ""
 
 -- Lexing rules and convenience renames
 
-lexer :: P.TokenParser ()
-lexer = P.makeTokenParser $ haskellStyle
-  { P.reservedNames   = ["let","in","case","of"]
-  , P.reservedOpNames = ["=","->"]
+lexer :: T.TokenParser ()
+lexer = T.makeTokenParser $ haskellStyle
+  { T.reservedNames   = ["let","in","case","of"]
+  , T.reservedOpNames = ["=","->"]
   }
 
-space    = P.whiteSpace lexer
-name     = P.identifier lexer <?> "name"
-op       = P.reservedOp lexer
-symbol   = P.symbol lexer
-int      = fromInteger <$> P.natural lexer <?> "int"
-parens   = P.parens lexer
-reserved = P.reserved lexer
-call n x = x <?> n
+space    = T.whiteSpace lexer
+name     = T.identifier lexer <?> "name"
+op       = T.reservedOp lexer
+symbol   = T.symbol lexer
+int      = fromInteger <$> T.natural lexer <?> "int"
+parens   = T.parens lexer
+reserved = T.reserved lexer
 
 -- Core language parsers
 
