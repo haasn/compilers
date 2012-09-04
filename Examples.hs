@@ -1,72 +1,72 @@
 module Core.Examples where
 
 import Core.Common
+import Core.Parser
 
-example1 :: CoreProgram
-example1 = CoreProgram
-  [ ScDef "id" ["x"] (Free "x")
-  , ScDef "main" [] (App (Free "id") (Constr 3 0))
-  ]
+Right example1 = parse "\
+\ id x = x             ;\
+\ main = id {1,0}       \
+\ "
 
+Right example2 = parse "\
+\ s x y z = x z (y z)  ;\
+\ k x y   = x          ;\
+\                       \
+\ main = s k k {2,0}    \
+\ "
 
-example2 :: CoreProgram
-example2 = CoreProgram [ScDef "main" []
-  (App (App (App (Free "S") (Free "K")) (Free "K")) (Constr 3 0))]
+Right example3 = parse "      \
+\ id x      = x              ;\
+\ twice f x = f (f x)        ;\
+\                             \
+\ main = twice twice id {3,0} \
+\ "
 
+Right example4 = parse "  \
+\ id x      = x          ;\
+\ twice f x = f (f x)    ;\
+\                         \
+\ main = let f = twice id \
+\        in twice f {4,0} \
+\ "
 
-example3 :: CoreProgram
-example3 = CoreProgram
-  [ ScDef "twice" ["f", "x"] (App (Free "f") (App (Free "f") (Free "x")))
-  , ScDef "id" ["x"] (Free "x")
-  , ScDef "main" [] (App (App (App (Free "twice")(Free "twice"))
-                         (Free "id")) (Constr 3 0))
-  ]
+Right example5 = parse "    \
+\ k x y = x                ;\
+\ y f   = let x = f x in x ;\
+\ main  = y k {5,0}         \
+\ "
 
-example4 :: CoreProgram
-example4 = CoreProgram
-  [ ScDef "twice" ["f", "x"] (App (Free "f") (App (Free "f") (Free "x")))
-  , ScDef "main" [] (LetRec [("f", (App (Free "twice") (Free "I")))]
-                      (App (App (Free "twice") (Free "f")) (Constr 3 0)))
-  ]
+Right example6 = parse "\
+\ main = case {1,0} of  \
+\   <0> -> {5,0}        \
+\   <1> -> {6,0}        \
+\ "
 
-example5 :: CoreProgram
-example5 = CoreProgram
-  [ ScDef "y" ["f"] (LetRec [("x", App (Free "f") (Free "x"))] (Free "x"))
-  , ScDef "main" [] (App (Free "y") (App (Free "K") (Constr 3 0)))
-  ]
+Right example7 = parse "   \
+\ pair x y = {0,2} x y    ;\
+\ main = pair {1,0} {7,0}  \
+\ "
 
-example6 :: CoreProgram
-example6 = CoreProgram
-  [ ScDef "main" [] (Case (Constr 1 0)
-    [ Match 0 [] (Constr 4 0)
-    , Match 1 [] (Constr 5 0)
-    ])
-  ]
+Right example8 = parse "\
+\ false = {0,0}        ;\
+\ true  = {1,0}        ;\
+\                       \
+\ and x y = case x of   \
+\   <0> -> false        \
+\   <1> -> y           ;\
+\                       \
+\ main = and true true  \
+\ "
 
-examplePair :: CoreProgram
-examplePair = CoreProgram
-  [ ScDef "pair" ["x", "y"] (App (App (Constr 0 2) (Free "x")) (Free "y"))
-  , ScDef "main" [] (App (App (Free "pair") (Constr 2 0)) (Constr 4 0))
-  ]
-
-example7 :: CoreProgram
-example7 = CoreProgram
-  [ ScDef "true"  [] (Constr 1 0)
-  , ScDef "false" [] (Constr 0 0)
-  , ScDef "and" ["x", "y"] (Case (Free "x")
-    [ Match 1 [] (Free "y")
-    , Match 0 [] (Free "false")
-    ])
-  , ScDef "main" [] (App (App (Free "and") (Free "true")) (Free "true"))
-  ]
-
-example8 :: CoreProgram
-example8 = CoreProgram
-  [ ScDef "zero" [] (Constr 0 0)
-  , ScDef "succ" ["n"] (App (Constr 1 1) (Free "n"))
-  , ScDef "length" ["l"] (Case (Free "l")
-    [ Match 0 [] (Free "zero")
-    , Match 1 ["x", "xs"] (App (Free "succ") (App (Free "length") (Free "xs")))
-    ])
-  , ScDef "main" [] (App (Free "length") (Constr 0 0))
-  ]
+Right example9 = parse "          \
+\ zero   = {0,0}                 ;\
+\ succ n = {1,1} n               ;\
+\                                 \
+\ nil       = {0,0}              ;\
+\ cons x xs = {1,2} x xs         ;\
+\ length l  = case l of           \
+\   <0>      -> zero              \
+\   <1> x xs -> succ (length xs) ;\
+\                                 \
+\ main = length nil               \
+\ "
