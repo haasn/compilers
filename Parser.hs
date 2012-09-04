@@ -39,9 +39,8 @@ coreScDef :: Parser ScDef
 coreScDef = ScDef <$> name <*> many name <* op "=" <*> expr <?> "definition"
 
 expr :: Parser CoreExpr
-expr = buildExpressionParser table primexpr <|> letrec <|> caseof
+expr = primexpr `chainl1` return App <|> letrec <|> caseof
        <?> "expression"
-  where table = [[Infix (return App) AssocLeft]]
 
 primexpr :: Parser CoreExpr
 primexpr = parens expr <|> constr <|> free <?> "primitive expression"
