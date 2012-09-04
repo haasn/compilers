@@ -7,7 +7,7 @@ import Text.Parsec.Language (haskellStyle)
 import Text.Parsec.String
 import qualified Text.Parsec.Token as T
 
-import Core.Common
+import Core.Types
 
 parse :: String -> Either ParseError CoreProgram
 parse = runParser coreProgram () ""

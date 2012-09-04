@@ -21,7 +21,7 @@ import Data.Maybe (fromMaybe)
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Core.Common
+import Core.Types
 
 data Instr
   = Take Int Int -- Take n items off the stack and store them in a new frame

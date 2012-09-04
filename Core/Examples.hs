@@ -1,6 +1,5 @@
 module Core.Examples where
 
-import Core.Common
 import Core.Parser
 
 Right example1 = parse "\

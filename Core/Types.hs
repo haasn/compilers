@@ -1,4 +1,4 @@
-module Core.Common where
+module Core.Types where
 
 -- Shared ADT for Core source code
 

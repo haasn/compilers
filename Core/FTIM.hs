@@ -5,7 +5,7 @@ module Core.FTIM where
 -- and a heap, this has no real use other than testing that the code
 -- generators work correctly.
 
-import Core.Common (Tag)
+import Core.Types (Tag)
 import Core.TIM.Flatten
 
 import Control.Applicative

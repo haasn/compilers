@@ -4,7 +4,7 @@ module Core.TIM.Flatten where
 -- Compiler for a low level flattened TIM with a sequential code block and
 -- simpler instructions, with no special addressing modes.
 
-import Core.Common
+import Core.Types
 import Core.TIM hiding (code)
 
 import Core.Examples
