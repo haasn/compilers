@@ -15,9 +15,7 @@ parse = runParser coreProgram () ""
 -- Lexing rules and convenience renames
 
 T.TokenParser{..} = T.makeTokenParser $ haskellStyle
-  { T.reservedNames   = ["let","in","case","of"]
-  , T.reservedOpNames = ["=","->"]
-  }
+  { T.reservedNames   = ["let","in","case","of"] }
 
 name = identifier <?> "name"
 op   = reservedOp
