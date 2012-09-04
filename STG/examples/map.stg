@@ -1,0 +1,19 @@
+map = \n f l ->
+  case l of
+    <1> x xs -> let fy  = f y  \u -> f y      ;
+                    mfy = f ys \u -> map f ys
+		in <1> fy mfy
+
+    default  -> <0>
+  ;
+
+map1 = \n f ->
+  letrec
+    mf = f mf \n xs ->
+      case xs of
+        <1> y ys -> let fy  =  f y  \u -> f y   ;
+	                mfy = mf ys \u -> mf ys
+		    in <1> fy mfy
+
+	default  -> <0>
+  in mf
