@@ -1,8 +1,8 @@
+{-# LANGUAGE RecordWildCards #-}
 module Core.Parser where
 
 import Control.Applicative hiding (many, (<|>))
 import Text.Parsec         hiding (space)
-import Text.Parsec.Expr
 import Text.Parsec.Language (haskellStyle)
 import Text.Parsec.String
 import qualified Text.Parsec.Token as T
@@ -14,25 +14,20 @@ parse = runParser coreProgram () ""
 
 -- Lexing rules and convenience renames
 
-lexer :: T.TokenParser ()
-lexer = T.makeTokenParser $ haskellStyle
+T.TokenParser{..} = T.makeTokenParser $ haskellStyle
   { T.reservedNames   = ["let","in","case","of"]
   , T.reservedOpNames = ["=","->"]
   }
 
-space    = T.whiteSpace lexer
-name     = T.identifier lexer <?> "name"
-op       = T.reservedOp lexer
-symbol   = T.symbol lexer
-int      = fromInteger <$> T.natural lexer <?> "int"
-parens   = T.parens lexer
-reserved = T.reserved lexer
+name = identifier <?> "name"
+op   = reservedOp
+int  = fromInteger <$> natural <?> "int"
 
 -- Core language parsers
 
 coreProgram :: Parser CoreProgram
 coreProgram = CoreProgram
-  <$> (space *> coreScDef `sepBy` symbol ";" <* eof)
+  <$> (whiteSpace *> coreScDef `sepBy` symbol ";" <* eof)
   <?> "program"
 
 coreScDef :: Parser ScDef
