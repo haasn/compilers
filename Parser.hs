@@ -52,17 +52,17 @@ call n x = x <?> n
 -- Core language parsers
 
 coreProgram :: Parser CoreProgram
-coreProgram = CoreProgram <$>
-  (space *> coreScDef `sepBy` symbol ";" <* eof) <?> "program"
+coreProgram = CoreProgram
+  <$> (space *> coreScDef `sepBy` symbol ";" <* eof)
+  <?> "program"
 
 coreScDef :: Parser ScDef
 coreScDef = ScDef <$> name <*> many name <* op "=" <*> expr <?> "definition"
 
 expr :: Parser CoreExpr
-expr = buildExpressionParser table primexpr<|> letrec <|> caseof
+expr = buildExpressionParser table primexpr <|> letrec <|> caseof
        <?> "expression"
-  where
-    table = [[Infix (return App) AssocLeft]]
+  where table = [[Infix (return App) AssocLeft]]
 
 primexpr :: Parser CoreExpr
 primexpr = parens expr <|> constr <|> free <?> "primitive expression"
@@ -71,13 +71,10 @@ free :: Parser CoreExpr
 free = Free <$> name <?> "free variable"
 
 constr :: Parser CoreExpr
-constr = call "constructor" $ do
-  symbol "{"
-  t <- int <?> "tag"
-  symbol ","
-  a <- int <?> "arity"
-  symbol "}"
-  return (Constr t a)
+constr = Constr
+  <$> (symbol "{" *> int <?> "tag")
+  <*> (symbol "," *> int <* symbol "}" <?> "arity")
+  <?> "constructor"
 
 letrec :: Parser CoreExpr
 letrec = LetRec
