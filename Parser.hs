@@ -9,26 +9,6 @@ import qualified Text.Parsec.Token as P
 
 import Core.Common
 
-{-
-
-The syntax for this Core dialect is showcased with a small example:
-
- twice f x = f (f x) ;
-
- false = {0,0} ;
- true  = {1,0} ;
-
- nil       = {0,0} ;
- cons x xs = {1,2} x xs ;
-
- fix f = let x = f x in x ;
-
- null l = case l of
-   <0>      -> true
-   <1> x xs -> false
-
--}
-
 parse :: String -> Either ParseError CoreProgram
 parse = runParser coreProgram () ""
 
