@@ -1,19 +1,18 @@
-map = \n f l ->
+map = \f l ->
   case l of
-    <1> x xs -> let fx  = f x  \u -> f x      ;
-                    mfx = f xs \u -> map f xs
+    <1> x xs -> let fx  = / -> f x      ;
+                    mfx = / -> map f xs
 		in <1> fx mfx
 
-    nil -> nil
+    default -> l
   ;
 
-map1 = \n f ->
-  let
-    mf = f mf \n xs ->
-      case xs of
-        <1> y ys -> let fy  =  f y  \u -> f y   ;
-	                mfy = mf ys \u -> mf ys
-		    in <1> fy mfy
+map1 = \f ->
+  let mf = \xs ->
+    case xs of
+      <1> y ys -> let fy  = / -> f y   ;
+	              mfy = / -> mf ys
+		  in <1> fy mfy
 
-	nil -> nil
+     default -> l
   in mf

@@ -15,8 +15,7 @@ data Binding = Binding
   deriving Show
 
 data LambdaForm = LF
-  { free :: [Name]
-  , upd  :: Update
+  { upd  :: Update
   , args :: [Name]
   , body :: Expr
   }

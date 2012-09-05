@@ -1,14 +1,14 @@
-const = \n x y -> x ;
+const = \x y -> x ;
 
-fix = \n f ->
-  let x = x \n -> f x
+fix = \f ->
+  let x = / -> f x
   in  x ;
 
-id = \n x -> x ;
+id = \x -> x ;
 
-join = \n f x ->
+join = \f x ->
   f x x ;
 
-main = \u ->
-  let ci = \u -> const id
+main = \ ->
+  let ci = / -> const id
   in  fix ci five
