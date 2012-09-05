@@ -8,7 +8,7 @@ map = \n f l ->
   ;
 
 map1 = \n f ->
-  letrec
+  let
     mf = f mf \n xs ->
       case xs of
         <1> y ys -> let fy  =  f y  \u -> f y   ;
