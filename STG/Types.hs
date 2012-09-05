@@ -24,7 +24,6 @@ data LambdaForm = LF
 data Expr
   = App Name [Name]
   | Constr Tag [Name]
-  | Let [Binding] Expr
   | LetRec [Binding] Expr
   | Case Expr [Match] Default
   deriving Show

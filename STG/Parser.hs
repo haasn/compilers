@@ -17,7 +17,7 @@ parse = runParser program () ""
 -- Lexing rules and other helpers
 
 T.TokenParser{..} = T.makeTokenParser $ haskellStyle
-  { T.reservedNames   = ["let", "letrec", "in", "case", "of", "default"] }
+  { T.reservedNames   = ["let", "in", "case", "of", "default"] }
 
 var = identifier <?> "var"
 op  = reservedOp
@@ -47,17 +47,12 @@ update = U <$ reserved "u" <|> N <$ reserved "n" <?> "update flag"
 -- Expression parsers
 
 expr :: Parser Expr
-expr = try letRec <|> letNon <|> caseOf <|> constr <|> app <?> "expression"
+expr = letRec <|> caseOf <|> constr <|> app <?> "expression"
 
 letRec :: Parser Expr
-letRec = LetRec <$> (reserved "letrec" *> manySep binding)
-                <*> (reserved "in"     *> expr)
-                <?> "letrec block"
-
-letNon :: Parser Expr
-letNon = Let <$> (reserved "let" *> manySep binding)
-             <*> (reserved "in"  *> expr)
-             <?> "let block"
+letRec = LetRec <$> (reserved "let" *> manySep binding)
+                <*> (reserved "in"  *> expr)
+                <?> "let block"
 
 caseOf :: Parser Expr
 caseOf = Case <$> (reserved "case" *> expr)
