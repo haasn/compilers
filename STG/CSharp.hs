@@ -33,7 +33,7 @@ putBindings bs = do
 
 putBinding :: Binding -> Gen ()
 putBinding (Binding n LF{..}) = do
-  put $ "_" ++ n ++ ".f = delegate {"
+  put ("_" ++ n ++ ".f = delegate {")
 
   indent $ do
     forM_ args $ \n -> put ("var _" ++ n ++ " = args.Pop ();")
@@ -47,58 +47,79 @@ putBinding (Binding n LF{..}) = do
 putExpr :: Expr -> Gen ()
 putExpr (App n as) = do
   forM_ (reverse as) $ \a -> put ("args.Push (_" ++ a ++ ");")
-  put $ "next = _" ++ n ++ ";"
+  put ("return _" ++ n ++ ";")
 
 putExpr (LetRec bs e) = putBindings bs >> putExpr e
 
-putExpr (Constr _ _) = error "Cannot compile Constr yet"
-putExpr (Case _ _ _) = error "Cannot compile Case yet"
+putExpr (Constr t ns) = do
+  put ("tag = " ++ show t ++ ";")
+  put "vars.Clear ();"
+  forM_ ns $ \n -> put ("vars.Push (_" ++ n ++ ");")
+  put "return cont.Pop ();"
+
+putExpr (Case e ms d) = do
+  put "cont.Push (new Fun (delegate {"
+  indent $ do
+    put "switch (tag) {"
+    indent $ do
+      mapM_ putMatch ms
+
+      put "default:"
+      indent (putExpr d)
+    put "}"
+  put "}));"
+  br
+  putExpr e
+
+putMatch :: Match -> Gen ()
+putMatch Match{..} = do
+  put ("case " ++ show matchTag ++ ":")
+  indent $ do
+    forM_ (reverse matchVars) $ \n -> put ("var _" ++ n ++ " = vars.Pop ();")
+    putExpr matchBody
+  br
 
 preamble :: Gen ()
 preamble = do
   put "using System;"
   put "using System.Collections.Generic;"
   br
-  put "class Fun { public FunPtr f; }"
-  put "delegate void FunPtr ();"
+  put "class Fun {"
+  put "  public FunPtr f;"
+  put "  public Fun () {}"
+  put "  public Fun (FunPtr p) { f = p; }}"
+  put "delegate Fun FunPtr ();"
   br
   put "class STG { static void Main() {"
   br
-  put "Stack<Fun> args = new Stack<Fun> ();"
-  put "Stack<Fun> cont = new Stack<Fun> ();"
-  put "Stack<int> vals = new Stack<int> ();"
+  put "int tag = 0;"
   br
-  put "Fun next;"
-  br
-
-  -- For testing purposes only
-  put "Fun _five = new Fun ();"
-  put "_five.f = delegate { vals.Push (5); next = cont.Pop (); };"
+  put "var args = new Stack<Fun> ();"
+  put "var cont = new Stack<Fun> ();"
+  put "var vars = new Stack<Fun> ();"
   br
 
 epilogue :: Gen ()
 epilogue = do
-  put "Fun output = new Fun ();"
+  put "var output = new Fun ();"
   put "output.f = delegate {"
-  put "  foreach (int i in vals)"
-  put "    Console.WriteLine (i);"
-  br
+  put "  Console.WriteLine (tag);"
   put "  Environment.Exit (0);"
+  put "  return null;"
   put "};"
   br
   put "cont.Push (output);"
   br
-  put "next = _main;"
+  put "var next = _main;"
   put "while (true)"
-  put "  next.f ();"
+  put "  next = next.f ();"
   br
   put "}}"
 
 -- Helpers and minor functions
 
 alloc :: Name -> Gen ()
-alloc n = do
-  put $ "Fun _" ++ n ++ " = new Fun ();"
+alloc n = put ("var _" ++ n ++ " = new Fun ();")
 
 indent :: Gen a -> Gen a
 indent = local (+2)
