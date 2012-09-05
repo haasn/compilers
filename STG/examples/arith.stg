@@ -1,0 +1,33 @@
+false = \ -> <0> ;
+true  = \ -> <1> ;
+
+zero = \ -> <0> ;
+succ = \n -> <1> n ;
+
+add = \x y ->
+  case x of
+    <1> n ->
+      let addny = / -> add n y
+      in  succ addny
+
+    default -> y
+  ;
+
+eq = \x y ->
+  case x of
+    <1> n -> case y of
+      <1> m   -> eq n m
+      default -> false
+
+    default -> case y of
+      <1> m   -> false
+      default -> true
+  ;
+
+one   = / -> succ zero ;
+two   = / -> succ one  ;
+three = / -> succ two  ;
+
+main = \ ->
+  let addot = / -> add one two
+  in  eq addot three
