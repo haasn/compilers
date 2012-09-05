@@ -72,7 +72,5 @@ app = App <$> var <*> many var <?> "application"
 match :: Parser Match
 match = Match <$> tag <*> many var <* op "->" <*> expr <?> "pattern match"
 
-defaultMatch :: Parser Default
-defaultMatch = Named   <$> var <* op "->" <*> expr
-           <|> Default <$ reserved "default" <* op "->" <*> expr
-           <?> "default match"
+defaultMatch :: Parser Expr
+defaultMatch = reserved "default" *> op "->" *> expr <?> "default match"

@@ -26,7 +26,7 @@ data Expr
   = App Name [Name]
   | Constr Tag [Name]
   | LetRec [Binding] Expr
-  | Case Expr [Match] Default
+  | Case Expr [Match] Expr
   deriving Show
 
 data Match = Match
@@ -34,9 +34,6 @@ data Match = Match
   , matchVars :: [Name]
   , matchBody :: Expr
   }
-  deriving Show
-
-data Default = Named Name Expr | Default Expr
   deriving Show
 
 data Update = U | N
