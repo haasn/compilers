@@ -15,7 +15,7 @@ type Default    = GDefault Name
 
 -- Generalized versions of the above types, parametrized over variable type
 
-newtype GProgram a = Program [GBinding a]
+newtype GProgram a = Program { bindings :: [GBinding a] }
   deriving (Show, Functor)
 
 data GBinding a = Binding

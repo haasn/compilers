@@ -8,7 +8,6 @@ import Core.TIM (store, compile)
 import Core.TIM.Flatten
 
 import Control.Lens (view, itraverse)
-import Control.Monad.Reader
 import Control.Monad.Writer
 import Data.Map (Map)
 import Data.Maybe (fromJust)
