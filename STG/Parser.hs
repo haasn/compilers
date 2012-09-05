@@ -31,7 +31,7 @@ manySep p = p `sepBy` symbol ";"
 -- STG language parsers
 
 program :: Parser Program
-program = whiteSpace *> manySep binding <* eof <?> "program"
+program = Program <$> (whiteSpace *> manySep binding <* eof) <?> "program"
 
 binding :: Parser Binding
 binding = Binding <$> var <* op "=" <*> lambdaForm <?> "binding"
