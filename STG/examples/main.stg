@@ -1,6 +1,6 @@
-k = \n x y -> x ;
+const = \n x y -> x ;
 
-y = \n f ->
+fix = \n f ->
   let x = x \n -> f x
   in  x ;
 
@@ -10,5 +10,5 @@ join = \n f x ->
   f x x ;
 
 main = \u ->
-  let ki = \u -> k id
-  in  y ki five
+  let ci = \u -> const id
+  in  fix ci five

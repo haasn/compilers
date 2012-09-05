@@ -1,11 +1,10 @@
-{-# LANGUAGE TemplateHaskell, RecordWildCards #-}
+{-# LANGUAGE RecordWildCards #-}
 module STG.CSharp where
 
 -- C# code generator
 
 import STG.Types
 
-import Control.Lens
 import Control.Monad.Reader
 import Control.Monad.Writer
 import Data.Map (Map)
@@ -13,44 +12,31 @@ import Data.Maybe (fromMaybe)
 import qualified Data.DList as DL
 import qualified Data.Map   as Map
 
-type Gen = ReaderT Env (Writer (DL.DList Char))
+type Gen = ReaderT Int (Writer (DL.DList Char))
 
 runGen :: Gen () -> String
-runGen = DL.toList . execWriter . (`runReaderT` env)
-  where env = Env 0 "" Map.empty
-
-data Env = Env
-  { _level  :: Int
-  , _suffix :: Name
-  , _locals :: Map Name Name
-  }
-
-makeLenses ''Env
+runGen = DL.toList . execWriter . (`runReaderT` 0)
 
 -- Code generators
 
 putProgram :: Program -> Gen ()
 putProgram Program{..} = do
   preamble
-  putBindings bindings Nothing
+  putBindings bindings
   epilogue
 
-putBindings :: [Binding] -> Maybe (Gen ()) -> Gen ()
-putBindings bs e = do
-  s <- query suffix
-  localize s (map lhs bs) $ \names -> do
-    let bs' = zipWith Binding names (map rhs bs)
-    mapM_ (alloc . lhs) bs' >> br
-    mapM_ putBinding bs'
-    fromMaybe (return ()) e
+putBindings :: [Binding] -> Gen ()
+putBindings bs = do
+  mapM_ (alloc . lhs) bs
+  br
+  mapM_ putBinding bs
 
 putBinding :: Binding -> Gen ()
 putBinding (Binding n LF{..}) = do
-  name <- getName n
-  put $ name ++ ".f = delegate {"
+  put $ "_" ++ n ++ ".f = delegate {"
 
-  indent . localize name args $ \args -> do
-    forM_ args $ \n -> put ("var " ++ n ++ " = args.Pop ();")
+  indent $ do
+    forM_ args $ \n -> put ("var _" ++ n ++ " = args.Pop ();")
     unless (null args) br
 
     putExpr body
@@ -60,12 +46,10 @@ putBinding (Binding n LF{..}) = do
 
 putExpr :: Expr -> Gen ()
 putExpr (App n as) = do
-  name <- getName n
-  args <- mapM getName as
-  forM_ (reverse args) $ \a -> put ("args.Push (" ++ a ++ ");")
-  put $ "next = " ++ name ++ ";"
+  forM_ (reverse as) $ \a -> put ("args.Push (_" ++ a ++ ");")
+  put $ "next = _" ++ n ++ ";"
 
-putExpr (LetRec bs e) = putBindings bs (Just $ putExpr e)
+putExpr (LetRec bs e) = putBindings bs >> putExpr e
 
 putExpr (Constr _ _) = error "Cannot compile Constr yet"
 putExpr (Case _ _ _) = error "Cannot compile Case yet"
@@ -88,8 +72,8 @@ preamble = do
   br
 
   -- For testing purposes only
-  put "Fun five = new Fun ();"
-  put "five.f = delegate { vals.Push (5); next = cont.Pop (); };"
+  put "Fun _five = new Fun ();"
+  put "_five.f = delegate { vals.Push (5); next = cont.Pop (); };"
   br
 
 epilogue :: Gen ()
@@ -112,28 +96,16 @@ epilogue = do
 
 -- Helpers and minor functions
 
-getName :: Name -> Gen Name
-getName n = do
-  env <- query locals
-  return (fromMaybe (error $ "no such name: " ++ n) (env^.at n))
-
 alloc :: Name -> Gen ()
 alloc n = do
-  name <- getName n
-  put $ "Fun " ++ name ++ " = new Fun ();"
+  put $ "Fun _" ++ n ++ " = new Fun ();"
 
 indent :: Gen a -> Gen a
-indent = local (level +~ 2)
-
-localize :: Name -> [Name] -> ([Name] -> Gen a) -> Gen a
-localize s ls c = local ((locals %~ Map.union m) . (suffix .~ s)) $ c ls'
-  where
-    ls' = map (\n -> ('_':n)++s) ls
-    m  = Map.fromList (zip ls ls')
+indent = local (+2)
 
 put :: String -> Gen ()
 put s = do
-  i <- query level
+  i <- ask
   tell $ DL.fromList (replicate i ' ')
   tell $ DL.fromList s
   br

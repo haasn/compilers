@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveFunctor #-}
 module STG.Types where
 
 -- Spineless, tagless, G-machine
@@ -6,48 +5,39 @@ module STG.Types where
 type Name = String
 type Tag  = Int
 
-type Program    = GProgram Name
-type Binding    = GBinding Name
-type LambdaForm = GLambdaForm Name
-type Expr       = GExpr Name
-type Match      = GMatch Name
-type Default    = GDefault Name
+newtype Program = Program { bindings :: [Binding] }
+  deriving Show
 
--- Generalized versions of the above types, parametrized over variable type
-
-newtype GProgram a = Program { bindings :: [GBinding a] }
-  deriving (Show, Functor)
-
-data GBinding a = Binding
-  { lhs :: a
-  , rhs :: GLambdaForm a
+data Binding = Binding
+  { lhs :: Name
+  , rhs :: LambdaForm
   }
-  deriving (Show, Functor)
+  deriving Show
 
-data GLambdaForm a = LF
-  { free :: [a]
+data LambdaForm = LF
+  { free :: [Name]
   , upd  :: Update
-  , args :: [a]
-  , body :: GExpr a
+  , args :: [Name]
+  , body :: Expr
   }
-  deriving (Show, Functor)
+  deriving Show
 
-data GExpr a
-  = App a [a]
-  | Constr Tag [a]
-  | LetRec [GBinding a] (GExpr a)
-  | Case (GExpr a) [GMatch a] (GDefault a)
-  deriving (Show, Functor)
+data Expr
+  = App Name [Name]
+  | Constr Tag [Name]
+  | LetRec [Binding] Expr
+  | Case Expr [Match] Default
+  deriving Show
 
-data GMatch a = Match
+data Match = Match
   { matchTag  :: Tag
-  , matchVars :: [a]
-  , matchBody :: GExpr a
+  , matchVars :: [Name]
+  , matchBody :: Expr
   }
-  deriving (Show, Functor)
+  deriving Show
 
-data GDefault a = Named a (GExpr a) | Default (GExpr a)
-  deriving (Show, Functor)
+data Default = Named Name Expr | Default Expr
+  deriving Show
 
 data Update = U | N
   deriving Show
