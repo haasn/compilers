@@ -36,6 +36,8 @@ putBinding (Binding n LF{..}) = do
   put ("_" ++ n ++ ".f = delegate {")
 
   indent $ do
+    when upd (putUpdate n)
+
     forM_ args $ \n -> put ("var _" ++ n ++ " = args.Pop ();")
     unless (null args) br
 
@@ -43,6 +45,21 @@ putBinding (Binding n LF{..}) = do
 
   put "};"
   br
+
+putUpdate :: Name -> Gen ()
+putUpdate n = do
+  put "cont.Push (new Fun (delegate {"
+  indent $ do
+    put "var mytag  = tag;"
+    put "var myvars = vars;"
+    put ("_" ++ n ++ ".f = delegate {")
+    indent $ do
+      put "tag  = mytag;"
+      put "vars = myvars;"
+      put "return cont.Pop ();"
+    put "};"
+    put "return cont.Pop ();"
+  put "}));"
 
 putExpr :: Expr -> Gen ()
 putExpr (App n as) = do
@@ -53,8 +70,11 @@ putExpr (LetRec bs e) = putBindings bs >> putExpr e
 
 putExpr (Constr t ns) = do
   put ("tag = " ++ show t ++ ";")
-  put "vars.Clear ();"
-  forM_ ns $ \n -> put ("vars.Push (_" ++ n ++ ");")
+  case length ns of
+    0 -> put "vars = null;"
+    n -> put ("vars = new Fun[" ++ show n ++ "];")
+  let putV v n = put ("vars[" ++ show n ++ "] = (_" ++ v ++ ");")
+  sequence_ $ zipWith putV ns [0..]
   put "return cont.Pop ();"
 
 putExpr (Case e ms d) = do
@@ -75,7 +95,10 @@ putMatch :: Match -> Gen ()
 putMatch Match{..} = do
   put ("case " ++ show matchTag ++ ":")
   indent $ do
-    forM_ (reverse matchVars) $ \n -> put ("var _" ++ n ++ " = vars.Pop ();")
+    let putV v n = put ("var _" ++ v ++ " = vars[" ++ show n ++"];")
+    sequence_ $ zipWith putV matchVars [0..]
+    put "vars = null;"
+    br
     putExpr matchBody
   br
 
@@ -96,7 +119,7 @@ preamble = do
   br
   put "var args = new Stack<Fun> ();"
   put "var cont = new Stack<Fun> ();"
-  put "var vars = new Stack<Fun> ();"
+  put "Fun[] vars = null;"
   br
 
 epilogue :: Gen ()
