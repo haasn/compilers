@@ -1,0 +1,27 @@
+undefined = \ -> undefined ;
+
+pair = \x y -> <0> x y ;
+
+-- curry f x y = f (x, y)
+curry = \f x y ->
+  let xy = @ pair x y
+  in  f xy ;
+
+-- uncurry f (x,y) = f x y
+uncurry = \f p -> case p of
+  <0> x y -> f x y
+  default -> undefined ;
+
+-- church bools
+true  = \x y -> x ;
+false = \x y -> y ;
+
+and = \x y -> x y x ;
+or  = \x y -> x x y ;
+
+T = \ -> <1> ;
+F = \ -> <0> ;
+
+main = \ ->
+  let ptf = @ pair true false
+  in  uncurry or ptf T F
