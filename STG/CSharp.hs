@@ -60,23 +60,22 @@ putExpr (App n as) = do
 putExpr (LetRec bs e) = putBindings bs >> putExpr e
 
 putExpr (Constr t ns) = do
-  put ("tag = " ++ show t ++ ";")
-  case length ns of
-    0 -> put "vars = null;"
-    n -> put ("vars = new Fun[" ++ show n ++ "];")
-  let putV v n = put ("vars[" ++ show n ++ "] = (_" ++ v ++ ");")
-  zipWithM_ putV ns [0..]
+  put ("ireg = " ++ show t ++ ";")
+  unless (null ns) $ do
+    put ("vars = new Fun[" ++ show (length ns) ++ "];")
+    let putV v n = put ("vars[" ++ show n ++ "] = (_" ++ v ++ ");")
+    zipWithM_ putV ns [0..]
   put "return stack.Pop ();"
 
-putExpr (Case e ms d) = do
+putExpr (Case e ms) = do
   put "stack.Push (new Fun (delegate {"
   indent $ do
-    put "switch (tag) {"
+    put "switch (ireg) {"
     indent $ do
       mapM_ putMatch ms
 
       put "default:"
-      indent (putExpr d)
+      indent $ put "throw new CaseException (ireg);"
     put "}"
   put "}));"
   br
@@ -97,11 +96,11 @@ putUpdate :: Name -> Gen ()
 putUpdate n = do
   put "stack.Push (new Fun (delegate {"
   indent $ do
-    put "var mytag  = tag;"
+    put "var myireg = ireg;"
     put "var myvars = vars;"
     put ("_" ++ n ++ ".f = delegate {")
     indent $ do
-      put "tag  = mytag;"
+      put "ireg = myireg;"
       put "vars = myvars;"
       put "return stack.Pop ();"
     put "};"
@@ -120,9 +119,17 @@ preamble = do
   put "  public Fun (FunPtr p) { f = p; }}"
   put "delegate Fun FunPtr ();"
   br
+  put "class CaseException : Exception {"
+  indent $ do
+    put "int t; public CaseException (int i) { t = i; }"
+    put "public override string ToString() { return"
+    indent $ put "\"Incomplete pattern match for tag = \" + t; }}"
+  br
   put "partial class STG {"
   br
-  put "static int tag = 0;"
+  put "static int    ireg = 0;"
+  put "static double dreg = 0;"
+  br
   put "static Stack<Fun> stack = new Stack<Fun> ();"
   put "static Fun[] vars = null;"
   br
@@ -132,14 +139,16 @@ epilogue = do
   put "static void Main () {"
   indent $ do
     put "stack.Push (new Fun (delegate {"
-    put "  Console.WriteLine (tag);"
-    put "  Environment.Exit (0);"
-    put "  return null;"
+    indent $ do
+      put "Console.WriteLine (\"ireg = \" + ireg);"
+      put "Console.WriteLine (\"dreg = \" + dreg);"
+      put "Environment.Exit (0);"
+      put "return null;"
     put "}));"
     br
     put "var next = _main;"
     put "while (true)"
-    put "  next = next.f ();"
+    indent $ put "next = next.f ();"
   put "}}"
 
 -- Helpers and minor functions

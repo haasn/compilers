@@ -23,7 +23,7 @@ data Expr
   = App Name [Name]
   | Constr Tag [Name]
   | LetRec [Binding] Expr
-  | Case Expr [Match] Expr
+  | Case Expr [Match]
   deriving Show
 
 data Match = Match

@@ -8,9 +8,8 @@ curry = \f x y ->
   in  f xy ;
 
 -- uncurry f (x,y) = f x y
-uncurry = \f p -> case p of
-  <0> x y -> f x y
-  default -> undefined ;
+uncurry = \f p -> case p of {
+  <0> x y -> f x y };
 
 -- church bools
 true  = \x y -> x ;

@@ -55,8 +55,7 @@ letRec = LetRec <$> (reserved "let" *> manySep binding)
 
 caseOf :: Parser Expr
 caseOf = Case <$> (reserved "case" *> expr)
-              <*> (reserved "of"   *> many match)
-              <*> defaultMatch
+              <*> (reserved "of"   *> op "{" *> many match <* op "}")
               <?> "case block"
 
 constr :: Parser Expr

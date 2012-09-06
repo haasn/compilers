@@ -5,24 +5,24 @@ zero = \ -> <0> ;
 succ = \n -> <1> n ;
 
 add = \x y ->
-  case x of
+  case x of {
+    <0>   -> y
+
     <1> n ->
       let addny = @ add n y
       in  succ addny
-
-    default -> y
-  ;
+  };
 
 eq = \x y ->
-  case x of
-    <1> n -> case y of
-      <1> m   -> eq n m
-      default -> false
+  case x of {
+    <0>   -> case y of {
+      <0>   -> true
+      <1> m -> false }
 
-    default -> case y of
-      <1> m   -> false
-      default -> true
-  ;
+    <1> n -> case y of {
+      <0>   -> false
+      <1> m -> eq n m }
+  };
 
 one   = @ succ zero ;
 two   = @ succ one  ;
