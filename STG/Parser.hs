@@ -38,10 +38,10 @@ binding :: Parser Binding
 binding = Binding <$> var <* op "=" <*> lambdaForm <?> "binding"
 
 lambdaForm :: Parser LambdaForm
-lambdaForm = LF <$> update <*> many var <* op "->" <*> expr <?> "lambda form"
-
-update :: Parser Update
-update = U <$ op "/" <|> N <$ op "\\" <?> "update flag"
+lambdaForm = updateLF <|> thunkLF <?> "lambda form"
+  where
+    updateLF = LF False <$> (op "\\" *> many var) <* op "->" <*> expr
+    thunkLF  = LF True [] <$ op "@" <*> expr
 
 -- Expression parsers
 

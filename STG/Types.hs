@@ -15,7 +15,7 @@ data Binding = Binding
   deriving Show
 
 data LambdaForm = LF
-  { upd  :: Update
+  { upd  :: Bool
   , args :: [Name]
   , body :: Expr
   }
@@ -33,7 +33,4 @@ data Match = Match
   , matchVars :: [Name]
   , matchBody :: Expr
   }
-  deriving Show
-
-data Update = U | N
   deriving Show

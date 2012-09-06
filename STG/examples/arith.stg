@@ -7,7 +7,7 @@ succ = \n -> <1> n ;
 add = \x y ->
   case x of
     <1> n ->
-      let addny = / -> add n y
+      let addny = @ add n y
       in  succ addny
 
     default -> y
@@ -24,10 +24,10 @@ eq = \x y ->
       default -> true
   ;
 
-one   = / -> succ zero ;
-two   = / -> succ one  ;
-three = / -> succ two  ;
+one   = @ succ zero ;
+two   = @ succ one  ;
+three = @ succ two  ;
 
 main = \ ->
-  let addot = / -> add one two
+  let addot = @ add one two
   in  eq addot three
