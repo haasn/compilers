@@ -11,15 +11,13 @@ newtype Program = Program { bindings :: [Binding] }
 data Binding = Binding
   { lhs :: Name
   , rhs :: LambdaForm
-  }
-  deriving Show
+  } deriving Show
 
 data LambdaForm = LF
   { upd  :: Bool
   , args :: [Name]
   , body :: Expr
-  }
-  deriving Show
+  } deriving Show
 
 data Expr
   = App Name [Name]
@@ -32,5 +30,4 @@ data Match = Match
   { matchTag  :: Tag
   , matchVars :: [Name]
   , matchBody :: Expr
-  }
-  deriving Show
+  } deriving Show
