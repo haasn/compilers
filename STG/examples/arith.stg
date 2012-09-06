@@ -24,10 +24,17 @@ eq = \x y ->
       <1> m -> eq n m }
   };
 
+toInt = \x ->
+  case x of {
+    <0>   -> #0
+    <1> n -> let tn = \ -> toInt n
+             in + #1 tn
+  };
+
 one   = @ succ zero ;
 two   = @ succ one  ;
 three = @ succ two  ;
 
 main = \ ->
-  let addot = @ add one two
-  in  eq addot three
+  let addtt = @ add three two
+  in  toInt addtt

@@ -20,10 +20,17 @@ data LambdaForm = LF
   } deriving Show
 
 data Expr
-  = App Name [Name]
+  = App Atom [Atom]
   | Constr Tag [Name]
   | LetRec [Binding] Expr
   | Case Expr [Match]
+  | Prim Op Atom Atom
+  deriving Show
+
+data Atom = Name Name | Lit Integer
+  deriving Show
+
+data Op = Add | Mul | Sub | Div
   deriving Show
 
 data Match = Match

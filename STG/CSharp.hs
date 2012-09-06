@@ -25,7 +25,7 @@ putProgram Program{..} = do
 
 putGlobal :: [Binding] -> Gen ()
 putGlobal = mapM_ $ \b -> do
-  put ("static Fun _" ++ lhs b ++ " = new Fun (delegate {")
+  put("static Fun _" ++ lhs b ++ " = new Fun (delegate {")
   indent (putLF (lhs b) (rhs b))
   put "});"
   br
@@ -38,7 +38,7 @@ putBindings bs = do
 
 putBinding :: Binding -> Gen ()
 putBinding (Binding n lf) = do
-  put ("_" ++ n ++ ".f = delegate {")
+  put("_" ++ n ++ ".f = delegate {")
   indent (putLF n lf)
   put "};"
   br
@@ -54,8 +54,8 @@ putLF n LF{..} = do
 
 putExpr :: Expr -> Gen ()
 putExpr (App n as) = do
-  forM_ (reverse as) $ \a -> put ("stack.Push (_" ++ a ++ ");")
-  put ("return _" ++ n ++ ";")
+  forM_ (reverse as) $ \a -> put ("stack.Push (" ++ atom a ++ ");")
+  put ("return " ++ atom n ++ ";")
 
 putExpr (LetRec bs e) = putBindings bs >> putExpr e
 
@@ -75,11 +75,14 @@ putExpr (Case e ms) = do
       mapM_ putMatch ms
 
       put "default:"
-      indent $ put "throw new CaseException (ireg);"
+      put "  throw new CaseException (ireg);"
     put "}"
   put "}));"
   br
   putExpr e
+
+putExpr (Prim op a b) =
+  put ("return " ++ show op ++ " (" ++ atom a ++ ", " ++ atom b ++ ");")
 
 putMatch :: Match -> Gen ()
 putMatch Match{..} = do
@@ -95,16 +98,14 @@ putMatch Match{..} = do
 putUpdate :: Name -> Gen ()
 putUpdate n = do
   put "stack.Push (new Fun (delegate {"
-  indent $ do
-    put "var myireg = ireg;"
-    put "var myvars = vars;"
-    put ("_" ++ n ++ ".f = delegate {")
-    indent $ do
-      put "ireg = myireg;"
-      put "vars = myvars;"
-      put "return stack.Pop ();"
-    put "};"
-    put "return stack.Pop ();"
+  put "  var myireg = ireg;"
+  put "  var myvars = vars;"
+  put("  _" ++ n ++ ".f = delegate {")
+  put "    ireg = myireg;"
+  put "    vars = myvars;"
+  put "    return stack.Pop ();"
+  put "  };"
+  put "  return stack.Pop ();"
   put "}));"
   br
 
@@ -120,10 +121,9 @@ preamble = do
   put "delegate Fun FunPtr ();"
   br
   put "class CaseException : Exception {"
-  indent $ do
-    put "int t; public CaseException (int i) { t = i; }"
-    put "public override string ToString() { return"
-    indent $ put "\"Incomplete pattern match for tag = \" + t; }}"
+  put "  int t; public CaseException (int i) { t = i; }"
+  put "  public override string ToString() { return"
+  put "    \"Incomplete pattern match for tag = \" + t; }}"
   br
   put "partial class STG {"
   br
@@ -133,28 +133,52 @@ preamble = do
   put "static Stack<Fun> stack = new Stack<Fun> ();"
   put "static Fun[] vars = null;"
   br
+  put "static Fun Lit (int i) {"
+  put "  return new Fun (delegate {"
+  put "    ireg = i;"
+  put "    return stack.Pop (); });}"
+  br
+  putPrimOp "Add" "+"
+  putPrimOp "Mul" "*"
+  putPrimOp "Sub" "-"
+  putPrimOp "Div" "/"
+
+putPrimOp :: Name -> String -> Gen ()
+putPrimOp n o = do
+  put("static Fun " ++ n ++ " (Fun a, Fun b) {")
+  put "  return new Fun (delegate {"
+  put "    stack.Push (new Fun (delegate {"
+  put "      int it = ireg;"
+  put "      stack.Push (new Fun (delegate {"
+  put("        ireg " ++ o ++ "= it;")
+  put "        return stack.Pop (); }));"
+  put "      return b; }));"
+  put "    return a; });}"
+  br
 
 epilogue :: Gen ()
 epilogue = do
   put "static void Main () {"
-  indent $ do
-    put "stack.Push (new Fun (delegate {"
-    indent $ do
-      put "Console.WriteLine (\"ireg = \" + ireg);"
-      put "Console.WriteLine (\"dreg = \" + dreg);"
-      put "Environment.Exit (0);"
-      put "return null;"
-    put "}));"
-    br
-    put "var next = _main;"
-    put "while (true)"
-    indent $ put "next = next.f ();"
+  put "  stack.Push (new Fun (delegate {"
+  put "    Console.WriteLine (\"ireg = \" + ireg);"
+  put "    Console.WriteLine (\"dreg = \" + dreg);"
+  put "    Environment.Exit (0);"
+  put "    return null;"
+  put "  }));"
+  br
+  put "  var next = _main;"
+  put "  while (true)"
+  put "    next = next.f ();"
   put "}}"
 
 -- Helpers and minor functions
 
 alloc :: Name -> Gen ()
 alloc n = put ("var _" ++ n ++ " = new Fun ();")
+
+atom :: Atom -> String
+atom (Name n) = '_' : n
+atom (Lit  n) = "Lit (" ++ show n ++ ")"
 
 indent :: Gen a -> Gen a
 indent = local (+2)

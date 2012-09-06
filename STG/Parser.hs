@@ -24,7 +24,7 @@ var = identifier <?> "var"
 op  = reservedOp
 
 tag :: Parser Tag
-tag = fromInteger <$> (symbol "<" *> natural <* symbol ">") <?> "tag"
+tag = fromInteger <$> (op "<" *> natural <* op ">") <?> "tag"
 
 manySep :: Parser a -> Parser [a]
 manySep p = p `sepBy` symbol ";"
@@ -46,7 +46,7 @@ lambdaForm = updateLF <|> thunkLF <?> "lambda form"
 -- Expression parsers
 
 expr :: Parser Expr
-expr = letRec <|> caseOf <|> constr <|> app <?> "expression"
+expr = letRec <|> caseOf <|> constr <|> primop <|> app <?> "expression"
 
 letRec :: Parser Expr
 letRec = LetRec <$> (reserved "let" *> manySep binding)
@@ -61,8 +61,15 @@ caseOf = Case <$> (reserved "case" *> expr)
 constr :: Parser Expr
 constr = Constr <$> tag <*> many var <?> "constructor"
 
+primop :: Parser Expr
+primop = Prim <$> o <*> atom <*> atom <?> "primitive operation"
+  where o = Add <$ op "+" <|> Mul <$ op "*" <|> Sub <$ op "-" <|> Div <$ op "/"
+
 app :: Parser Expr
-app = App <$> var <*> many var <?> "application"
+app = App <$> atom <*> many atom <?> "application"
+
+atom :: Parser Atom
+atom = Name <$> var <|> (Lit <$ op "#" <*> natural <?> "integer literal")
 
 -- Match parsers
 
