@@ -7,10 +7,7 @@ import STG.Types
 
 import Control.Monad.Reader
 import Control.Monad.Writer
-import Data.Map (Map)
-import Data.Maybe (fromMaybe)
 import qualified Data.DList as DL
-import qualified Data.Map   as Map
 
 type Gen = ReaderT Int (Writer (DL.DList Char))
 
@@ -38,7 +35,7 @@ putBinding (Binding n LF{..}) = do
   indent $ do
     when upd (putUpdate n)
 
-    forM_ args $ \n -> put ("var _" ++ n ++ " = args.Pop ();")
+    forM_ args $ \a -> put ("var _" ++ a ++ " = args.Pop ();")
     unless (null args) br
 
     putExpr body
