@@ -99,6 +99,7 @@ putUpdate n = do
     put "};"
     put "return cont.Pop ();"
   put "}));"
+  br
 
 preamble :: Gen ()
 preamble = do
