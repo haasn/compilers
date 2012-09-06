@@ -45,7 +45,7 @@ putBinding (Binding n lf) = do
 
 putLF :: Name -> LambdaForm -> Gen ()
 putLF n LF{..} = do
-  when upd (putUpdate n)
+  when upd $ put ("update (_" ++ n ++ ");")
 
   forM_ args $ \a -> put ("var _" ++ a ++ " = stack.Pop ();")
   unless (null args) br
@@ -95,19 +95,6 @@ putMatch Match{..} = do
     putExpr matchBody
   br
 
-putUpdate :: Name -> Gen ()
-putUpdate n = do
-  put "stack.Push (new Fun (delegate {"
-  put "  var myireg = ireg;"
-  put "  var myvars = vars;"
-  put("  _" ++ n ++ ".f = delegate {")
-  put "    ireg = myireg;"
-  put "    vars = myvars;"
-  put "    return stack.Pop ();"
-  put "  };"
-  put "  return stack.Pop ();"
-  put "}));"
-  br
 
 preamble :: Gen ()
 preamble = do
@@ -133,7 +120,21 @@ preamble = do
   put "static Stack<Fun> stack = new Stack<Fun> ();"
   put "static Fun[] vars = null;"
   br
-  put "static Fun Lit (int i) {"
+  put "static void update (Fun f) {"
+  put "  stack.Push (new Fun (delegate {"
+  put "    var myireg = ireg;"
+  put "    var mydreg = dreg;"
+  put "    var myvars = vars;"
+  put "    f.f = delegate {"
+  put "      ireg = myireg;"
+  put "      dreg = mydreg;"
+  put "      vars = myvars;"
+  put "      return stack.Pop ();"
+  put "    };"
+  put "    return stack.Pop ();"
+  put "}));}"
+  br
+  put "static Fun lit (int i) {"
   put "  return new Fun (delegate {"
   put "    ireg = i;"
   put "    return stack.Pop (); });}"
@@ -178,7 +179,7 @@ alloc n = put ("var _" ++ n ++ " = new Fun ();")
 
 atom :: Atom -> String
 atom (Name n) = '_' : n
-atom (Lit  n) = "Lit (" ++ show n ++ ")"
+atom (Lit  n) = "lit (" ++ show n ++ ")"
 
 indent :: Gen a -> Gen a
 indent = local (+2)
