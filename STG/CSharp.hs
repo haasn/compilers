@@ -5,6 +5,7 @@ module STG.CSharp where
 
 import STG.Types
 
+import Control.Monad (zipWithM_)
 import Control.Monad.Reader
 import Control.Monad.Writer
 import qualified Data.DList as DL
@@ -56,7 +57,7 @@ putExpr (Constr t ns) = do
     0 -> put "vars = null;"
     n -> put ("vars = new Fun[" ++ show n ++ "];")
   let putV v n = put ("vars[" ++ show n ++ "] = (_" ++ v ++ ");")
-  sequence_ $ zipWith putV ns [0..]
+  zipWithM_ putV ns [0..]
   put "return cont.Pop ();"
 
 putExpr (Case e ms d) = do
@@ -78,7 +79,7 @@ putMatch Match{..} = do
   put ("case " ++ show matchTag ++ ":")
   indent $ do
     let putV v n = put ("var _" ++ v ++ " = vars[" ++ show n ++"];")
-    sequence_ $ zipWith putV matchVars [0..]
+    zipWithM_ putV matchVars [0..]
     put "vars = null;"
     br
     putExpr matchBody
