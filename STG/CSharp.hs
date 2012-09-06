@@ -46,21 +46,6 @@ putBinding (Binding n LF{..}) = do
   put "};"
   br
 
-putUpdate :: Name -> Gen ()
-putUpdate n = do
-  put "cont.Push (new Fun (delegate {"
-  indent $ do
-    put "var mytag  = tag;"
-    put "var myvars = vars;"
-    put ("_" ++ n ++ ".f = delegate {")
-    indent $ do
-      put "tag  = mytag;"
-      put "vars = myvars;"
-      put "return cont.Pop ();"
-    put "};"
-    put "return cont.Pop ();"
-  put "}));"
-
 putExpr :: Expr -> Gen ()
 putExpr (App n as) = do
   forM_ (reverse as) $ \a -> put ("args.Push (_" ++ a ++ ");")
@@ -101,6 +86,21 @@ putMatch Match{..} = do
     br
     putExpr matchBody
   br
+
+putUpdate :: Name -> Gen ()
+putUpdate n = do
+  put "cont.Push (new Fun (delegate {"
+  indent $ do
+    put "var mytag  = tag;"
+    put "var myvars = vars;"
+    put ("_" ++ n ++ ".f = delegate {")
+    indent $ do
+      put "tag  = mytag;"
+      put "vars = myvars;"
+      put "return cont.Pop ();"
+    put "};"
+    put "return cont.Pop ();"
+  put "}));"
 
 preamble :: Gen ()
 preamble = do
