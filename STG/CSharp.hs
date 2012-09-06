@@ -25,14 +25,15 @@ putProgram Program{..} = do
 
 putGlobal :: [Binding] -> Gen ()
 putGlobal = mapM_ $ \b -> do
-  put("static Fun _" ++ lhs b ++ " = new Fun (delegate {")
+  let putA = show . length . args . rhs
+  put("static Fun _" ++ lhs b ++ " = new Fun (" ++ putA b ++ ", delegate {")
   indent (putLF (lhs b) (rhs b))
   put "});"
   br
 
 putBindings :: [Binding] -> Gen ()
 putBindings bs = do
-  mapM_ (alloc . lhs) bs
+  mapM_ alloc bs
   br
   mapM_ putBinding bs
 
@@ -103,8 +104,11 @@ preamble = do
   br
   put "class Fun {"
   put "  public FunPtr f;"
+  put "  public int a = 0;"
   put "  public Fun () {}"
-  put "  public Fun (FunPtr p) { f = p; }}"
+  put "  public Fun (int n) { a = n; }"
+  put "  public Fun (FunPtr p) { f = p; }"
+  put "  public Fun (int n, FunPtr p) { a = n; f = p; }}"
   put "delegate Fun FunPtr ();"
   br
   put "class CaseException : Exception {"
@@ -121,10 +125,11 @@ preamble = do
   put "static Fun[] vars = null;"
   br
   put "static void update (Fun f) {"
-  put "  stack.Push (new Fun (delegate {"
+  put "  stack.Push (new Fun (1, delegate {"
   put "    var myireg = ireg;"
   put "    var mydreg = dreg;"
   put "    var myvars = vars;"
+  put "    f.a = 1;"
   put "    f.f = delegate {"
   put "      ireg = myireg;"
   put "      dreg = mydreg;"
@@ -135,7 +140,7 @@ preamble = do
   put "}));}"
   br
   put "static Fun lit (int i) {"
-  put "  return new Fun (delegate {"
+  put "  return new Fun (1, delegate {"
   put "    ireg = i;"
   put "    return stack.Pop (); });}"
   br
@@ -150,7 +155,7 @@ putPrimOp n o = do
   put "  return new Fun (delegate {"
   put "    stack.Push (new Fun (delegate {"
   put "      int it = ireg;"
-  put "      stack.Push (new Fun (delegate {"
+  put "      stack.Push (new Fun (1, delegate {"
   put("        ireg " ++ o ++ "= it;")
   put "        return stack.Pop (); }));"
   put "      return b; }));"
@@ -168,14 +173,17 @@ epilogue = do
   put "  }));"
   br
   put "  var next = _main;"
-  put "  while (true)"
+  put "  while (next.a <= stack.Count)"
   put "    next = next.f ();"
+  br
+  put "  Console.WriteLine (\"weak head normal form\");"
   put "}}"
 
 -- Helpers and minor functions
 
-alloc :: Name -> Gen ()
-alloc n = put ("var _" ++ n ++ " = new Fun ();")
+alloc :: Binding -> Gen ()
+alloc (Binding n LF{..}) =
+  put ("var _" ++ n ++ " = new Fun (" ++ show (length args) ++ ");")
 
 atom :: Atom -> String
 atom (Name n) = '_' : n
