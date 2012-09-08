@@ -1,7 +1,7 @@
 -- Basic cat program
 
 forever = \a ->
-  let sa = @ seq a
+  let sa = \ -> seq a
   in  fix sa ;
 
 main = \ ->

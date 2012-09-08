@@ -35,5 +35,5 @@ bind = \x f -> case x of {
 };
 
 seq = \x y ->
-  let cy = @ const y
+  let cy = \ -> const y
   in  bind x cy
