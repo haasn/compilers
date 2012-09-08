@@ -1,14 +1,4 @@
-const = \x y -> x ;
-
-fix = \f ->
-  let x = @ f x
-  in  x ;
-
-id = \x -> x ;
-
-join = \f x ->
-  f x x ;
-
 main = \ ->
-  let ci = @ const id
-  in  fix ci five
+  let six1 = @ add three three ;
+      six2 = @ mul three two
+  in  eq six1 six2 T F

@@ -1,7 +1,5 @@
-nil  = \ -> <0> ;
+nil  = \     -> <0> ;
 cons = \x xs -> <1> x xs ;
-
-mul = \x y -> * x y ;
 
 map = \f l ->
   case l of {
@@ -21,10 +19,7 @@ sum = \l ->
       in + x sxs
   };
 
-main = \ -> let
-    x3 = @ cons #3 nil ;
-    x2 = @ cons #2 x3  ;
-    xs = @ cons #1 x2  ;
-    m2 = \ -> mul #2   ;
-    mx = @ map m2 xs
-  in sum mx
+onetwothree = @ let
+  x3 = @ cons #3 nil ;
+  x2 = @ cons #2 nil
+  in cons #1 x2
