@@ -147,19 +147,19 @@ preamble isMain = do
     put "    ireg = i;"
     put "    return stack.Pop (); });}"
     br
-    putPrimOp "Add" "+"
-    putPrimOp "Mul" "*"
-    putPrimOp "Sub" "-"
-    putPrimOp "Div" "/"
+    putPrimOp Add "+"
+    putPrimOp Mul "*"
+    putPrimOp Sub "-"
+    putPrimOp Div "/"
 
-putPrimOp :: Name -> String -> Gen ()
-putPrimOp n o = do
-  put("static Fun " ++ n ++ " (Fun a, Fun b) {")
+putPrimOp :: Op -> String -> Gen ()
+putPrimOp o s = do
+  put("static Fun " ++ show o ++ " (Fun a, Fun b) {")
   put "  return new Fun (delegate {"
   put "    stack.Push (new Fun (delegate {"
   put "      int it = ireg;"
   put "      stack.Push (new Fun (1, delegate {"
-  put("        ireg " ++ o ++ "= it;")
+  put("        ireg " ++ s ++ "= it;")
   put "        return stack.Pop (); }));"
   put "      return b; }));"
   put "    return a; });}"
