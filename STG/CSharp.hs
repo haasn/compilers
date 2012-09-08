@@ -162,20 +162,60 @@ putPrimOp o s = do
   put("        ireg " ++ s ++ "= it;")
   put "        return stack.Pop (); }));"
   put "      return b; }));"
-  put "    return a; });}"
+  put "    return a;"
+  put "});}"
   br
 
 epilogue :: Bool -> Gen ()
 epilogue isMain = do
   when isMain $ do
     put "static void Main () {"
-    put "  stack.Push (new Fun (delegate {"
-    put "    Console.WriteLine (\"ireg = \" + ireg);"
-    put "    Console.WriteLine (\"dreg = \" + dreg);"
-    put "    Environment.Exit (0);"
-    put "    return null;"
-    put "  }));"
+    put "  var handler = new Fun ();"
+    put "  handler.f = delegate {"
+    put "    switch (ireg) {"
+    put "      case 0:"
+    put "        throw new Exception (\"Program not terminated properly!\");"
     br
+    put "      case 1:"
+    put "        var i = vars[0];"
+    put "        var n = vars[1];"
+    put "        vars = null;"
+    br
+    put "        stack.Push (new Fun (delegate {"
+    put "          Console.Write ((char) ireg);"
+    put "          stack.Push (handler);"
+    put "          return n;"
+    put "        }));"
+    br
+    put "        return i;"
+    br
+    put "      case 2:"
+    put "        var f = vars[0];"
+    put "        vars = null;"
+    br
+    put "        char key = Console.ReadKey (true).KeyChar;"
+    put "        stack.Push (handler);"
+    put "        stack.Push (lit (key));"
+    br
+    put "        return f;"
+    br
+    put "      case 3:"
+    put "        var c = vars[0];"
+    put "        vars = null;"
+    br
+    put "        stack.Push (new Fun (delegate {"
+    put "          Environment.Exit (ireg);"
+    put "          return null;"
+    put "        }));"
+    br
+    put "        return c;"
+    br
+    put "      default:"
+    put "        throw new CaseException (ireg);"
+    put "    }"
+    put "  };"
+    br
+    put "  stack.Push (handler);"
     put "  var next = _main;"
     put "  while (next.a <= stack.Count)"
     put "    next = next.f ();"

@@ -3,4 +3,6 @@ join  = \f x -> f x x ;
 const = \x y -> x ;
 ap    = \x y z -> let yz = @ y z in x z yz ;
 fix   = \f -> let x = @ f x in x ;
-flip  = \f x y -> f y x
+flip  = \f x y -> f y x ;
+
+unit = \ -> <0>

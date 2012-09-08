@@ -1,4 +1,5 @@
+-- Basic cat program
+
 main = \ ->
-  let six1 = @ add three three ;
-      six2 = @ mul three two
-  in  eq six1 six2 T F
+  let rp = @ bind read print
+  in  seq rp main

@@ -1,0 +1,42 @@
+{-
+IO is treated as a free monad, ‘flattened’ here for simplicity:
+
+data IO a
+  = Return a
+  | Print Int (IO a)
+  | Read (Int -> IO a)
+  | Exit Int
+
+-}
+
+printraw = \x y -> <1> x y ;
+readraw  = \f   -> <2> f ;
+
+return = \x -> <0> x ;
+
+print = \n ->
+  let pu = @ return unit
+  in  printraw n pu ;
+
+read = \ -> readraw return ;
+
+exit = \i -> <3> i ;
+
+-- monadic binding primitives
+
+bind = \x f -> case x of {
+  <0> a   -> f a
+  <1> v n -> let bnf = @ bind n f
+             in  printraw v bnf
+
+  <2> g ->
+    let g2   = \i -> let gi = @ g i in bind gi f
+    in  readraw g2
+
+  -- Exit always terminates
+  <3> c -> exit c
+};
+
+seq = \x y ->
+  let cy = \ -> const y
+  in  bind x cy
