@@ -1,5 +1,9 @@
 -- Basic cat program
 
+forever = \a ->
+  let sa = @ seq a
+  in  fix sa ;
+
 main = \ ->
   let rp = @ bind read print
-  in  seq rp main
+  in  forever rp
