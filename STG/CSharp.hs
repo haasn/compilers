@@ -19,9 +19,10 @@ runGen = DL.toList . execWriter . (`runReaderT` 0)
 
 putProgram :: Program -> Gen ()
 putProgram Program{..} = do
-  preamble
+  preamble isMain
   putGlobal bindings
-  epilogue
+  epilogue isMain
+  where isMain = "main" `elem` map lhs bindings
 
 putGlobal :: [Binding] -> Gen ()
 putGlobal = mapM_ $ \b -> do
@@ -97,57 +98,59 @@ putMatch Match{..} = do
   br
 
 
-preamble :: Gen ()
-preamble = do
+preamble :: Bool -> Gen ()
+preamble isMain = do
   put "using System;"
   put "using System.Collections.Generic;"
   br
-  put "class Fun {"
-  put "  public FunPtr f;"
-  put "  public int a = 0;"
-  put "  public Fun () {}"
-  put "  public Fun (int n) { a = n; }"
-  put "  public Fun (FunPtr p) { f = p; }"
-  put "  public Fun (int n, FunPtr p) { a = n; f = p; }}"
-  put "delegate Fun FunPtr ();"
-  br
-  put "class CaseException : Exception {"
-  put "  int t; public CaseException (int i) { t = i; }"
-  put "  public override string ToString() { return"
-  put "    \"Incomplete pattern match for tag = \" + t; }}"
-  br
+  when isMain $ do
+    put "class Fun {"
+    put "  public FunPtr f;"
+    put "  public int a = 0;"
+    put "  public Fun () {}"
+    put "  public Fun (int n) { a = n; }"
+    put "  public Fun (FunPtr p) { f = p; }"
+    put "  public Fun (int n, FunPtr p) { a = n; f = p; }}"
+    put "delegate Fun FunPtr ();"
+    br
+    put "class CaseException : Exception {"
+    put "  int t; public CaseException (int i) { t = i; }"
+    put "  public override string ToString() { return"
+    put "    \"Incomplete pattern match for tag = \" + t; }}"
+    br
   put "partial class STG {"
   br
-  put "static int    ireg = 0;"
-  put "static double dreg = 0;"
-  br
-  put "static Stack<Fun> stack = new Stack<Fun> ();"
-  put "static Fun[] vars = null;"
-  br
-  put "static void update (Fun f) {"
-  put "  stack.Push (new Fun (1, delegate {"
-  put "    var myireg = ireg;"
-  put "    var mydreg = dreg;"
-  put "    var myvars = vars;"
-  put "    f.a = 1;"
-  put "    f.f = delegate {"
-  put "      ireg = myireg;"
-  put "      dreg = mydreg;"
-  put "      vars = myvars;"
-  put "      return stack.Pop ();"
-  put "    };"
-  put "    return stack.Pop ();"
-  put "}));}"
-  br
-  put "static Fun lit (int i) {"
-  put "  return new Fun (1, delegate {"
-  put "    ireg = i;"
-  put "    return stack.Pop (); });}"
-  br
-  putPrimOp "Add" "+"
-  putPrimOp "Mul" "*"
-  putPrimOp "Sub" "-"
-  putPrimOp "Div" "/"
+  when isMain $ do
+    put "static int    ireg = 0;"
+    put "static double dreg = 0;"
+    br
+    put "static Stack<Fun> stack = new Stack<Fun> ();"
+    put "static Fun[] vars = null;"
+    br
+    put "static void update (Fun f) {"
+    put "  stack.Push (new Fun (1, delegate {"
+    put "    var myireg = ireg;"
+    put "    var mydreg = dreg;"
+    put "    var myvars = vars;"
+    put "    f.a = 1;"
+    put "    f.f = delegate {"
+    put "      ireg = myireg;"
+    put "      dreg = mydreg;"
+    put "      vars = myvars;"
+    put "      return stack.Pop ();"
+    put "    };"
+    put "    return stack.Pop ();"
+    put "}));}"
+    br
+    put "static Fun lit (int i) {"
+    put "  return new Fun (1, delegate {"
+    put "    ireg = i;"
+    put "    return stack.Pop (); });}"
+    br
+    putPrimOp "Add" "+"
+    putPrimOp "Mul" "*"
+    putPrimOp "Sub" "-"
+    putPrimOp "Div" "/"
 
 putPrimOp :: Name -> String -> Gen ()
 putPrimOp n o = do
@@ -162,22 +165,23 @@ putPrimOp n o = do
   put "    return a; });}"
   br
 
-epilogue :: Gen ()
-epilogue = do
-  put "static void Main () {"
-  put "  stack.Push (new Fun (delegate {"
-  put "    Console.WriteLine (\"ireg = \" + ireg);"
-  put "    Console.WriteLine (\"dreg = \" + dreg);"
-  put "    Environment.Exit (0);"
-  put "    return null;"
-  put "  }));"
-  br
-  put "  var next = _main;"
-  put "  while (next.a <= stack.Count)"
-  put "    next = next.f ();"
-  br
-  put "  Console.WriteLine (\"weak head normal form\");"
-  put "}}"
+epilogue :: Bool -> Gen ()
+epilogue isMain = do
+  when isMain $ do
+    put "static void Main () {"
+    put "  stack.Push (new Fun (delegate {"
+    put "    Console.WriteLine (\"ireg = \" + ireg);"
+    put "    Console.WriteLine (\"dreg = \" + dreg);"
+    put "    Environment.Exit (0);"
+    put "    return null;"
+    put "  }));"
+    br
+    put "  var next = _main;"
+    put "  while (next.a <= stack.Count)"
+    put "    next = next.f ();"
+    br
+    put "  Console.WriteLine (\"weak head normal form\"); }"
+  put "}"
 
 -- Helpers and minor functions
 
