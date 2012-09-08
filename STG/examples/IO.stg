@@ -31,7 +31,7 @@ bind = \x f -> case x of {
     in  <2> g2
 
   -- Exit always terminates
-  <3> c -> exit c
+  <3> c -> <3> c
 };
 
 seq = \x y ->

@@ -15,6 +15,9 @@ type Gen = ReaderT Int (Writer (DL.DList Char))
 runGen :: Gen () -> String
 runGen = DL.toList . execWriter . (`runReaderT` 0)
 
+debug :: Bool
+debug = False
+
 -- Code generators
 
 putProgram :: Program -> Gen ()
@@ -47,7 +50,8 @@ putBinding (Binding n lf) = do
 
 putLF :: Name -> LambdaForm -> Gen ()
 putLF n LF{..} = do
-  when upd $ put ("update (_" ++ n ++ ");")
+  when debug $ put ("Console.WriteLine (" ++ show n ++ ");")
+  when upd   $ put ("update (_" ++ n ++ ");")
 
   forM_ args $ \a -> put ("var _" ++ a ++ " = stack.Pop ();")
   unless (null args) br
@@ -90,6 +94,7 @@ putMatch :: Match -> Gen ()
 putMatch Match{..} = do
   put ("case " ++ show matchTag ++ ":")
   indent $ do
+    when debug $ put ("Console.WriteLine (\"case " ++ show matchTag ++ "\");")
     let putV v n = put ("var _" ++ v ++ " = vars[" ++ show n ++"];")
     zipWithM_ putV matchVars [0..]
     put "vars = null;"
