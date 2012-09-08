@@ -59,7 +59,7 @@ caseOf = Case <$> (reserved "case" *> expr)
               <?> "case block"
 
 constr :: Parser Expr
-constr = Constr <$> tag <*> many var <?> "constructor"
+constr = Constr <$> tag <*> many atom <?> "constructor"
 
 primop :: Parser Expr
 primop = Prim <$> o <*> atom <*> atom <?> "primitive operation"

@@ -21,7 +21,7 @@ data LambdaForm = LF
 
 data Expr
   = App Atom [Atom]
-  | Constr Tag [Name]
+  | Constr Tag [Atom]
   | LetRec [Binding] Expr
   | Case Expr [Match]
   | Prim Op Atom Atom

@@ -69,9 +69,9 @@ putExpr (Constr t ns) = do
   put ("ireg = " ++ show t ++ ";")
   unless (null ns) $ do
     put ("vars = new Fun[" ++ show (length ns) ++ "];")
-    let putV v n = put ("vars[" ++ show n ++ "] = (_" ++ v ++ ");")
+    let putV a n = put ("vars[" ++ show n ++ "] = (" ++ atom a ++ ");")
     zipWithM_ putV ns [0..]
-  put "return stack.Pop ();"
+  put "return new Fun (1, delegate { return stack.Pop (); });"
 
 putExpr (Case e ms) = do
   put "stack.Push (new Fun (delegate {"
