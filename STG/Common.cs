@@ -47,7 +47,7 @@ static partial class STG {
   // Main entry point
   static void Main () {
     // Since C# doesn't optimize tail calls, we trampoline by having each
-    // closure returns the next continuation instead.
+    // closure return the next continuation instead.
     var next = _unsafeRealMain;
 
     // Ensure the arity isn't too great
