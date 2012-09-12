@@ -1,10 +1,10 @@
-pair = \x y -> <0> x y ;
-
 -- curry f x y = f (x, y)
+
 curry = \f x y ->
   let xy = @ pair x y
   in  f xy ;
 
 -- uncurry f (x,y) = f x y
+
 uncurry = \f p -> case p of {
   <0> x y -> f x y }

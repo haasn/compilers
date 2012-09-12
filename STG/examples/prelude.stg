@@ -5,4 +5,9 @@ ap    = \x y z -> let yz = @ y z in x z yz ;
 fix   = \f -> let x = @ f x in x ;
 flip  = \f x y -> f y x ;
 
-unit = \ -> <0>
+-- some primitive types
+
+unit  = \ -> <0> ; -- one
+pair  = \x y -> <0> x y ; -- product
+left  = \x -> <0> x ; -- sum
+right = \y -> <1> y

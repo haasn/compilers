@@ -1,5 +1,9 @@
+-- Tagged booleans
+
 F = \ -> <0> ;
 T = \ -> <1> ;
+
+-- Church booleans, more concise operators and easy to convert
 
 true  = \ -> const ;
 false = \ -> flip const ;
