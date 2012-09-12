@@ -64,4 +64,8 @@ bindIO = \x f -> case x of {
 
 seqIO = \x y ->
   let cy = \ -> const y
-  in  bindIO x cy
+  in  bindIO x cy ;
+
+foreverIO = \a ->
+  let sa = \ -> seqIO a
+  in  fix sa

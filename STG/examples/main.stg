@@ -1,9 +1,5 @@
 -- Basic cat program
 
-foreverIO = \a ->
-  let sa = \ -> seqIO a
-  in  fix sa ;
-
 main = \ ->
   let rp = @ bindIO getChar putChar
   in  foreverIO rp
