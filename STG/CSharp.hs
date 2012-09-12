@@ -22,10 +22,12 @@ debug = False
 
 putProgram :: Program -> Gen ()
 putProgram Program{..} = do
-  preamble isMain
-  putGlobal bindings
-  epilogue isMain
-  where isMain = "main" `elem` map lhs bindings
+  put "using System;"
+  put "using System.Collections.Generic;"
+  br
+  put "static partial class STG {"
+  indent (putGlobal bindings)
+  put "}"
 
 putGlobal :: [Binding] -> Gen ()
 putGlobal = mapM_ $ \b -> do
@@ -101,132 +103,6 @@ putMatch Match{..} = do
     br
     putExpr matchBody
   br
-
-
-preamble :: Bool -> Gen ()
-preamble isMain = do
-  put "using System;"
-  put "using System.Collections.Generic;"
-  br
-  when isMain $ do
-    put "class Fun {"
-    put "  public FunPtr f;"
-    put "  public int a = 0;"
-    put "  public Fun () {}"
-    put "  public Fun (int n) { a = n; }"
-    put "  public Fun (FunPtr p) { f = p; }"
-    put "  public Fun (int n, FunPtr p) { a = n; f = p; }}"
-    put "delegate Fun FunPtr ();"
-    br
-    put "class CaseException : Exception {"
-    put "  int t; public CaseException (int i) { t = i; }"
-    put "  public override string ToString() { return"
-    put "    \"Incomplete pattern match for tag = \" + t; }}"
-    br
-  put "partial class STG {"
-  br
-  when isMain $ do
-    put "static int    ireg = 0;"
-    put "static double dreg = 0;"
-    br
-    put "static Stack<Fun> stack = new Stack<Fun> ();"
-    put "static Fun[] vars = null;"
-    br
-    put "static void update (Fun f) {"
-    put "  stack.Push (new Fun (1, delegate {"
-    put "    var myireg = ireg;"
-    put "    var mydreg = dreg;"
-    put "    var myvars = vars;"
-    put "    f.a = 1;"
-    put "    f.f = delegate {"
-    put "      ireg = myireg;"
-    put "      dreg = mydreg;"
-    put "      vars = myvars;"
-    put "      return stack.Pop ();"
-    put "    };"
-    put "    return stack.Pop ();"
-    put "}));}"
-    br
-    put "static Fun lit (int i) {"
-    put "  return new Fun (1, delegate {"
-    put "    ireg = i;"
-    put "    return stack.Pop (); });}"
-    br
-    putPrimOp Add "+"
-    putPrimOp Mul "*"
-    putPrimOp Sub "-"
-    putPrimOp Div "/"
-
-putPrimOp :: Op -> String -> Gen ()
-putPrimOp o s = do
-  put("static Fun " ++ show o ++ " (Fun a, Fun b) {")
-  put "  return new Fun (delegate {"
-  put "    stack.Push (new Fun (delegate {"
-  put "      int it = ireg;"
-  put "      stack.Push (new Fun (1, delegate {"
-  put("        ireg " ++ s ++ "= it;")
-  put "        return stack.Pop (); }));"
-  put "      return b; }));"
-  put "    return a;"
-  put "});}"
-  br
-
-epilogue :: Bool -> Gen ()
-epilogue isMain = do
-  when isMain $ do
-    put "static void Main () {"
-    put "  var handler = new Fun ();"
-    put "  handler.f = delegate {"
-    put "    switch (ireg) {"
-    put "      case 0:"
-    put "        throw new Exception (\"Program not terminated properly!\");"
-    br
-    put "      case 1:"
-    put "        var i = vars[0];"
-    put "        var n = vars[1];"
-    put "        vars = null;"
-    br
-    put "        stack.Push (new Fun (delegate {"
-    put "          Console.Write ((char) ireg);"
-    put "          stack.Push (handler);"
-    put "          return n;"
-    put "        }));"
-    br
-    put "        return i;"
-    br
-    put "      case 2:"
-    put "        var f = vars[0];"
-    put "        vars = null;"
-    br
-    put "        char key = Console.ReadKey (true).KeyChar;"
-    put "        stack.Push (handler);"
-    put "        stack.Push (lit (key));"
-    br
-    put "        return f;"
-    br
-    put "      case 3:"
-    put "        var c = vars[0];"
-    put "        vars = null;"
-    br
-    put "        stack.Push (new Fun (delegate {"
-    put "          Environment.Exit (ireg);"
-    put "          return null;"
-    put "        }));"
-    br
-    put "        return c;"
-    br
-    put "      default:"
-    put "        throw new CaseException (ireg);"
-    put "    }"
-    put "  };"
-    br
-    put "  stack.Push (handler);"
-    put "  var next = _main;"
-    put "  while (next.a <= stack.Count)"
-    put "    next = next.f ();"
-    br
-    put "  Console.WriteLine (\"weak head normal form\"); }"
-  put "}"
 
 -- Helpers and minor functions
 

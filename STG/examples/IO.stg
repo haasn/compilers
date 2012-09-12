@@ -1,39 +1,67 @@
 {-
 IO is treated as a free monad, ‘flattened’ here for simplicity:
 
-data IO a
-  = Return a
-  | Print Int (IO a)
-  | Read (Int -> IO a)
-  | Exit Int
+> data IO a
+>   = Return a
+>   | forall i o. Run (FFI i o) i (o -> IO a)
+>   | Exit Int
 
+Hidden implementation detail. FFI functions are built into the
+implementation and not defineable within the language. They are
+prefixed by ‘unsafe’ to keep their name and intention recognizable.
+
+> type FFI = (->)
+
+> unsafePutChar :: FFI Char ()
+> unsafeGetChar :: FFI () Char
+> unsafeExit    :: FFI Int ()
+
+Note: Char = Int internally
 -}
 
-return = \x -> <0> x ;
+-- These should only ever be called by the RTS - in fact, ‘unsafeRealMain’
+-- is the only thing the RTS ever calls.
 
-print = \n ->
-  let pu = @ return unit
-  in  <1> n pu ;
+unsafeRealMain = \ -> unsafeLoopIO main ;
 
-read = \ -> <2> return ;
+unsafeLoopIO = \a -> case a of {
+  <0> x -> unsafeTermination
 
-exit = \i -> <3> i ;
+  <1> f i n ->
+    let fi  = @ f i ;
+        nfi = @ n fi ;
 
--- monadic binding primitives
+        -- This is a trick used to ‘force’ fi with nfi as the continuation
+        -- closure. Obviously bound by implementation details, but this is an
+        -- implementation-specific function so it's fine.
+        ffi = @ fi nfi
+    in unsafeLoopIO ffi
 
-bind = \x f -> case x of {
-  <0> a   -> f a
-  <1> v n -> let bnf = @ bind n f
-             in  <1> v bnf
-
-  <2> g ->
-    let g2   = \i -> let gi = @ g i in bind gi f
-    in  <2> g2
-
-  -- Exit always terminates
-  <3> c -> <3> c
+  <2> c -> unsafeExit c
 };
 
-seq = \x y ->
+-- The publicly accessible IO versions of the primitives
+
+returnIO = \x -> <0> x ;
+
+putChar = \c -> <1> unsafePutChar c returnIO ;
+
+getChar = \ -> <1> unsafeGetChar unit returnIO ;
+
+exit = \c -> <2> c ;
+
+-- Monadic binding primitives
+
+bindIO = \x f -> case x of {
+  <0> a   -> f a
+  <1> p i n ->
+    let nn = \o -> let no = \ -> n o in bindIO no f
+    in  <1> p i nn
+
+  -- Exit always terminates
+  <2> c -> <2> c
+};
+
+seqIO = \x y ->
   let cy = \ -> const y
-  in  bind x cy
+  in  bindIO x cy
