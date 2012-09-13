@@ -34,7 +34,7 @@ unsafeLoopIO = \a -> case a of {
         -- This is a trick used to ‘force’ fi with nfi as the continuation
         -- closure. Obviously bound by implementation details, but this is an
         -- implementation-specific function so it's fine.
-        ffi = @ fi nfi
+        ffi = \ -> fi nfi
     in unsafeLoopIO ffi
 
   <2> c -> unsafeExit c
