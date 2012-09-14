@@ -17,7 +17,7 @@ parse = runParser program () ""
 -- Lexing rules and other helpers
 
 T.TokenParser{..} = T.makeTokenParser $ haskellStyle
-  { T.reservedNames = ["let", "in", "case", "of", "default"]
+  { T.reservedNames = ["let", "in", "case", "of"]
   , T.identLetter   = alphaNum }
 
 var = identifier <?> "var"
@@ -38,10 +38,10 @@ binding :: Parser Binding
 binding = Binding <$> var <* op "=" <*> lambdaForm <?> "binding"
 
 lambdaForm :: Parser LambdaForm
-lambdaForm = updateLF <|> thunkLF <?> "lambda form"
+lambdaForm = funLF <|> thunkLF <?> "lambda form"
   where
-    updateLF = LF False <$> (op "\\" *> many var) <* op "->" <*> expr
-    thunkLF  = LF True [] <$ op "@" <*> expr
+    funLF   = LF False <$> (op "\\" *> many var) <* op "->" <*> expr
+    thunkLF = LF True [] <$ op "@" <*> expr
 
 -- Expression parsers
 
