@@ -48,25 +48,26 @@ static partial class STG {
       next = next.f (); }
 
   // Push an update continuation
-  static void update (Fun f) {
-    stack.Push (new Fun (delegate {
-      // Remember the state after evaluation
-      var myireg = ireg;
-      var mydreg = dreg;
-      var myvars = vars;
-      // Update the referenced closure with a quasi-constructor
-      f.f = delegate {
-        ireg = myireg;
-        dreg = mydreg;
-        vars = myvars;
-        return stack.Pop (); };
-      return stack.Pop (); })); }
+  static Fun update (Fun f) {
+    return new Fun (delegate {
+      stack.Push (new Fun (delegate {
+        // Remember the state after evaluation
+        var myireg = ireg;
+        var mydreg = dreg;
+        var myvars = vars;
+        // Update the referenced closure with a quasi-constructor
+        f.f = delegate {
+          ireg = myireg;
+          dreg = mydreg;
+          vars = myvars;
+          return stack.Pop (); };
+        return stack.Pop (); }));
+
+      return f; });}
 
   // Primitive function to force evaluation and updating
   static Fun _seq = new Fun (delegate {
-    var f = stack.Pop ();
-    update (f);
-    return f; });
+    return update (stack.Pop ()); });
 
   // Literal constructor for some i which simply assigns ireg
   static Fun lit (int i) {

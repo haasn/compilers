@@ -40,8 +40,8 @@ binding = (,) <$> var <* op "=" <*> expr <?> "binding"
 -- Expression parsers
 
 expr :: Parser Expr
-expr = lambda <|> letRec <|> caseOf <|> constr <|> primop <|> app <|> atom
-       <?> "expression"
+expr = update <|> lambda <|> letRec <|> constr
+       <|> caseOf <|> primop <|> app <|> atom  <?> "expression"
 
 lambda :: Parser Expr
 lambda = Lambda <$ op "\\" <*> many var <* op "->" <*> expr <?> "lambda"
@@ -58,6 +58,9 @@ caseOf = Case <$> (reserved "case" *> expr)
 
 constr :: Parser Expr
 constr = Constr <$> tag <*> many atom <?> "constructor"
+
+update :: Parser Expr
+update = Update <$ op "@" <*> expr <?> "update tag"
 
 lit :: Parser Expr
 lit = Literal <$ op "#" <*> natural <?> "integer literal"
