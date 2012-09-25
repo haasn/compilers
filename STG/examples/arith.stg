@@ -1,22 +1,18 @@
-zero = \  -> <0> ;
+zero = <0> ;
 succ = \n -> <1> n ;
 
 add = \x y ->
   case x of {
     <0>   -> y
 
-    <1> n ->
-      let addny = @ add n y
-      in  succ addny
+    <1> n -> succ (add n y)
   };
 
 mul = \x y ->
   case x of {
     <0>   -> x
 
-    <1> n ->
-      let mny = @ mul n y
-      in  add y mny
+    <1> n -> add y (mul n y)
   };
 
 eq = \x y ->
@@ -33,10 +29,9 @@ eq = \x y ->
 toInt = \x ->
   case x of {
     <0>   -> #0
-    <1> n -> let tn = \ -> toInt n
-             in + #1 tn
+    <1> n -> + #1 (toInt n)
   };
 
-one   = @ succ zero ;
-two   = @ succ one  ;
-three = @ succ two
+one   = succ zero ;
+two   = succ one  ;
+three = succ two

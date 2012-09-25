@@ -5,12 +5,9 @@ using System.Collections.Generic;
 // because it allows later updating.
 
 class Fun {
-  public FunPtr f;  // Actual code fragment
-  public int a = 0; // Arity, used for WHNF checking but technically unneeded
+  public FunPtr f;
   public Fun () {}
-  public Fun (int n) { a = n; }
-  public Fun (FunPtr p) { f = p; }
-  public Fun (int n, FunPtr p) { a = n; f = p; }}
+  public Fun (FunPtr p) { f = p; }}
 
 // Type safe delegate for computing continuations
 
@@ -23,10 +20,6 @@ class CaseException : Exception {
   int t; public CaseException (int i) { t = i; }
   public override string ToString () { return
     "Incomplete pattern match for tag = " + t; }}
-
-class WHNFException : Exception {
-  public override string ToString () { return
-    "Computation in weak head normal form"; }}
 
 class TerminationException : Exception {
   public override string ToString () { return
@@ -50,22 +43,18 @@ static partial class STG {
     // closure return the next continuation instead.
     var next = _unsafeRealMain;
 
-    // Ensure the arity isn't too great
-    while (next.a <= stack.Count)
+    while (true)
       // Compute a single step and update the pointer
-      next = next.f ();
-
-    throw new WHNFException (); }
+      next = next.f (); }
 
   // Push an update continuation
   static void update (Fun f) {
-    stack.Push (new Fun (1, delegate {
+    stack.Push (new Fun (delegate {
       // Remember the state after evaluation
       var myireg = ireg;
       var mydreg = dreg;
       var myvars = vars;
       // Update the referenced closure with a quasi-constructor
-      f.a = 1;
       f.f = delegate {
         ireg = myireg;
         dreg = mydreg;
@@ -73,9 +62,15 @@ static partial class STG {
         return stack.Pop (); };
       return stack.Pop (); })); }
 
+  // Primitive function to force evaluation and updating
+  static Fun _seq = new Fun (delegate {
+    var f = stack.Pop ();
+    update (f);
+    return f; });
+
   // Literal constructor for some i which simply assigns ireg
   static Fun lit (int i) {
-    return new Fun (1, delegate {
+    return new Fun (delegate {
       ireg = i;
       return stack.Pop (); }); }
 
@@ -83,19 +78,19 @@ static partial class STG {
   static Fun _unsafeTermination = new Fun (delegate {
     throw new TerminationException (); });
 
-  static Fun _unsafePutChar = new Fun (1, delegate {
+  static Fun _unsafePutChar = new Fun (delegate {
     var c = stack.Pop ();
     stack.Push (new Fun (delegate {
       Console.Write ((char) ireg);
       return _unit; }));
     return c; });
 
-  static Fun _unsafeGetChar = new Fun (2, delegate {
+  static Fun _unsafeGetChar = new Fun (delegate {
     stack.Pop (); // Unit, ignored
     ireg = (int) Console.ReadKey (true).KeyChar;
     return stack.Pop (); });
 
-  static Fun _unsafeExit = new Fun (1, delegate {
+  static Fun _unsafeExit = new Fun (delegate {
     var code = stack.Pop ();
     stack.Push (new Fun (delegate {
       Environment.Exit (ireg);
@@ -107,7 +102,7 @@ static partial class STG {
     return new Fun (delegate {
       stack.Push (new Fun (delegate {
         int it = ireg;
-        stack.Push (new Fun (1, delegate {
+        stack.Push (new Fun (delegate {
           ireg += it;
           return stack.Pop (); }));
         return b; }));
@@ -117,7 +112,7 @@ static partial class STG {
     return new Fun (delegate {
       stack.Push (new Fun (delegate {
         int it = ireg;
-        stack.Push (new Fun (1, delegate {
+        stack.Push (new Fun (delegate {
           ireg *= it;
           return stack.Pop (); }));
         return b; }));
@@ -127,7 +122,7 @@ static partial class STG {
     return new Fun (delegate {
       stack.Push (new Fun (delegate {
         int it = ireg;
-        stack.Push (new Fun (1, delegate {
+        stack.Push (new Fun (delegate {
           ireg -= it;
           return stack.Pop (); }));
         return b; }));
@@ -137,7 +132,7 @@ static partial class STG {
     return new Fun (delegate {
       stack.Push (new Fun (delegate {
         int it = ireg;
-        stack.Push (new Fun (1, delegate {
+        stack.Push (new Fun (delegate {
           ireg /= it;
           return stack.Pop (); }));
         return b; }));

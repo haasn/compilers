@@ -1,25 +1,18 @@
-nil  = \     -> <0> ;
+nil  = <0> ;
 cons = \x xs -> <1> x xs ;
 
 map = \f l ->
   case l of {
     <0> -> l
 
-    <1> x xs -> let fx  = @ f x      ;
-                    mfx = @ map f xs
-		in <1> fx mfx
+    <1> x xs -> <1> (f x) (map f xs)
   };
 
 sum = \l ->
   case l of {
     <0> -> #0
 
-    <1> x xs ->
-      let sxs = \ -> sum xs
-      in + x sxs
+    <1> x xs -> + x (sum xs)
   };
 
-onetwothree = @ let
-  x3 = @ cons #3 nil ;
-  x2 = @ cons #2 nil
-  in cons #1 x2
+onetwothree = cons #1 (cons #2 (cons #3 nil))

@@ -22,19 +22,20 @@ Note: Char = Int internally
 -- These should only ever be called by the RTS - in fact, ‘unsafeRealMain’
 -- is the only thing the RTS ever calls.
 
-unsafeRealMain = \ -> unsafeLoopIO main ;
+unsafeRealMain = unsafeLoopIO main ;
 
 unsafeLoopIO = \a -> case a of {
   <0> x -> unsafeTermination
 
   <1> f i n ->
-    let fi  = @ f i ;
-        nfi = @ n fi ;
+    let fi  = f i ;
+        nfi = n fi ;
 
-        -- This is a trick used to ‘force’ fi with nfi as the continuation
-        -- closure. Obviously bound by implementation details, but this is an
-        -- implementation-specific function so it's fine.
-        ffi = \ -> fi nfi
+	-- Since ‘f’ has side effects, we need to force it for any IO to take
+	-- place. This is factored out to a primitive function which also
+	-- ensures that ‘fi’ is updated properly afterwards, so effects don't
+	-- get repeated.
+        ffi = seq fi nfi
     in unsafeLoopIO ffi
 
   <2> c -> unsafeExit c
@@ -46,7 +47,7 @@ returnIO = \x -> <0> x ;
 
 putChar = \c -> <1> unsafePutChar c returnIO ;
 
-getChar = \ -> <1> unsafeGetChar unit returnIO ;
+getChar = <1> unsafeGetChar unit returnIO ;
 
 exit = \c -> <2> c ;
 
@@ -54,18 +55,12 @@ exit = \c -> <2> c ;
 
 bindIO = \x f -> case x of {
   <0> a   -> f a
-  <1> p i n ->
-    let nn = \o -> let no = \ -> n o in bindIO no f
-    in  <1> p i nn
+  <1> p i n -> <1> p i (\o -> bindIO (n o) f)
 
   -- Exit always terminates
   <2> c -> <2> c
 };
 
-seqIO = \x y ->
-  let cy = \ -> const y
-  in  bindIO x cy ;
+seqIO = \x y -> bindIO x (const y) ;
 
-foreverIO = \a ->
-  let sa = \ -> seqIO a
-  in  fix sa
+foreverIO = \a -> fix (seqIO a)

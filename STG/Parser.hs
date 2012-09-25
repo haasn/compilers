@@ -35,18 +35,16 @@ program :: Parser Program
 program = Program <$> (whiteSpace *> manySep binding <* eof) <?> "program"
 
 binding :: Parser Binding
-binding = Binding <$> var <* op "=" <*> lambdaForm <?> "binding"
-
-lambdaForm :: Parser LambdaForm
-lambdaForm = funLF <|> thunkLF <?> "lambda form"
-  where
-    funLF   = LF False <$> (op "\\" *> many var) <* op "->" <*> expr
-    thunkLF = LF True [] <$ op "@" <*> expr
+binding = (,) <$> var <* op "=" <*> expr <?> "binding"
 
 -- Expression parsers
 
 expr :: Parser Expr
-expr = letRec <|> caseOf <|> constr <|> primop <|> app <?> "expression"
+expr = lambda <|> letRec <|> caseOf <|> constr <|> primop <|> app <|> atom
+       <?> "expression"
+
+lambda :: Parser Expr
+lambda = Lambda <$ op "\\" <*> many var <* op "->" <*> expr <?> "lambda"
 
 letRec :: Parser Expr
 letRec = LetRec <$> (reserved "let" *> manySep binding)
@@ -61,15 +59,21 @@ caseOf = Case <$> (reserved "case" *> expr)
 constr :: Parser Expr
 constr = Constr <$> tag <*> many atom <?> "constructor"
 
+lit :: Parser Expr
+lit = Literal <$ op "#" <*> natural <?> "integer literal"
+
 primop :: Parser Expr
 primop = Prim <$> o <*> atom <*> atom <?> "primitive operation"
   where o = Add <$ op "+" <|> Mul <$ op "*" <|> Sub <$ op "-" <|> Div <$ op "/"
 
 app :: Parser Expr
-app = App <$> atom <*> many atom <?> "application"
+app = App <$> var <*> many atom <?> "application"
 
-atom :: Parser Atom
-atom = Name <$> var <|> (Lit <$ op "#" <*> natural <?> "integer literal")
+atom :: Parser Expr
+atom = free <|> lit <|> parens expr <?> "atomic expression"
+
+free :: Parser Expr
+free = App <$> var <*> pure [] <?> "free variable"
 
 -- Match parsers
 

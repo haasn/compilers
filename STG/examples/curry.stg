@@ -1,8 +1,6 @@
 -- curry f x y = f (x, y)
 
-curry = \f x y ->
-  let xy = @ pair x y
-  in  f xy ;
+curry = \f x y -> f (pair x y) ;
 
 -- uncurry f (x,y) = f x y
 

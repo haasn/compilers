@@ -1,13 +1,13 @@
 id    = \x -> x ;
 join  = \f x -> f x x ;
 const = \x y -> x ;
-ap    = \x y z -> let yz = @ y z in x z yz ;
-fix   = \f -> let x = @ f x in x ;
+ap    = \x y z -> x z (y z) ;
+fix   = \f -> let x = f x in x ;
 flip  = \f x y -> f y x ;
 
 -- some primitive types
 
-unit  = \ -> <0> ; -- one
+unit  = <0> ; -- one
 pair  = \x y -> <0> x y ; -- product
 left  = \x -> <0> x ; -- sum
 right = \y -> <1> y

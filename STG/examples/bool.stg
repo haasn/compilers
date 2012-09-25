@@ -1,12 +1,12 @@
 -- Tagged booleans
 
-F = \ -> <0> ;
-T = \ -> <1> ;
+F = <0> ;
+T = <1> ;
 
 -- Church booleans, more concise operators and easy to convert
 
-true  = \ -> const ;
-false = \ -> flip const ;
+true  = const ;
+false = flip const ;
 
 and = \x y -> x y x ;
 or  = \x y -> x x y

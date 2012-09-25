@@ -8,26 +8,16 @@ type Tag  = Int
 newtype Program = Program { bindings :: [Binding] }
   deriving Show
 
-data Binding = Binding
-  { lhs :: Name
-  , rhs :: LambdaForm
-  } deriving Show
-
-data LambdaForm = LF
-  { upd  :: Bool
-  , args :: [Name]
-  , body :: Expr
-  } deriving Show
+type Binding = (Name, Expr)
 
 data Expr
-  = App Atom [Atom]
-  | Constr Tag [Atom]
+  = App Name [Expr]
+  | Lambda [Name] Expr
   | LetRec [Binding] Expr
+  | Constr Tag [Expr]
   | Case Expr [Match]
-  | Prim Op Atom Atom
-  deriving Show
-
-data Atom = Name Name | Lit Integer
+  | Literal Integer
+  | Prim Op Expr Expr
   deriving Show
 
 data Op = Add | Mul | Sub | Div
