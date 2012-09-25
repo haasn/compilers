@@ -6,7 +6,6 @@ module STG.CSharp where
 import Prelude
 import STG.Types
 
-import Control.Monad (zipWithM_)
 import Control.Monad.Reader
 import Control.Monad.Writer
 import qualified Data.DList as DL
