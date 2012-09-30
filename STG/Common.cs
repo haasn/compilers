@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 // One level of indirection is maintained for function closures,
-// because it allows later updating.
+// because it allows later updating and recursive mentioning.
 
 class Fun {
   public FunPtr f;
