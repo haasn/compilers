@@ -91,11 +91,6 @@ putExpr (Case e ms) = scoped $ do
   br
   returns $ putExpr e
 
-putExpr (Update e) = do
-  put "update ("
-  indent $ putExpr e
-  put ")"
-
 putExpr (Prim op a b) = scoped $ do
   put (show op ++ " (")
   indent $ putExpr a

@@ -5,7 +5,7 @@ map = \f l ->
   case l of {
     <0> -> l
 
-    <1> x xs -> <1> (@ f x) (@ map f xs)
+    <1> x xs -> <1> (f x) (map f xs)
   };
 
 sum = \l ->
@@ -15,4 +15,4 @@ sum = \l ->
     <1> x xs -> + x (sum xs)
   };
 
-onetwothree = @ cons #1 (@ cons #2 (@ cons #3 nil))
+onetwothree = cons #1 (cons #2 (cons #3 nil))

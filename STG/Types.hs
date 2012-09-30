@@ -18,7 +18,6 @@ data Expr
   | Case Expr [Match]
   | Literal Integer
   | Prim Op Expr Expr
-  | Update Expr
   deriving Show
 
 data Op = Add | Mul | Sub | Div

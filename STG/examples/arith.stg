@@ -5,14 +5,14 @@ add = \x y ->
   case x of {
     <0>   -> y
 
-    <1> n -> succ (@ add n y)
+    <1> n -> succ (add n y)
   };
 
 mul = \x y ->
   case x of {
     <0>   -> x
 
-    <1> n -> add y (@ mul n y)
+    <1> n -> add y (mul n y)
   };
 
 eq = \x y ->
@@ -32,6 +32,6 @@ toInt = \x ->
     <1> n -> + #1 (toInt n)
   };
 
-one   = @ succ zero ;
-two   = @ succ one  ;
-three = @ succ two
+one   = succ zero ;
+two   = succ one  ;
+three = succ two
