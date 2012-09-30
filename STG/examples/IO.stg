@@ -24,10 +24,12 @@ Note: Char = Int internally
 
 unsafeRealMain = unsafeLoopIO main ;
 
-unsafeLoopIO = \a -> case a of {
-  <0> x -> unsafeTermination
+unsafeLoopIO = \a -> a
+  -- Return
+  (const unsafeTermination)
 
-  <1> f i n ->
+  -- Run
+  (\f i n ->
     let fi  = f i ;
         nfi = n fi ;
 
@@ -36,30 +38,35 @@ unsafeLoopIO = \a -> case a of {
 	-- ensures that ‘fi’ is updated properly afterwards, so effects don't
 	-- get repeated.
         ffi = seq fi nfi
-    in unsafeLoopIO ffi
+    in unsafeLoopIO ffi)
 
-  <2> c -> unsafeExit c
-};
+  -- Exit
+  unsafeExit
+;
+
+-- Scott constructors
+
+returnIO = \x p r e     -> p x ;
+runIO    = \f i o p r e -> r f i o ;
+exit     = \c p r e     -> e c ;
 
 -- The publicly accessible IO versions of the primitives
 
-returnIO = \x -> <0> x ;
-
-putChar = \c -> <1> unsafePutChar c returnIO ;
-
-getChar = <1> unsafeGetChar unit returnIO ;
-
-exit = \c -> <2> c ;
+putChar  = \c -> runIO unsafePutChar c    returnIO ;
+getChar  =       runIO unsafeGetChar unit returnIO ;
 
 -- Monadic binding primitives
 
-bindIO = \x f -> case x of {
-  <0> a   -> f a
-  <1> p i n -> <1> p i (\o -> bindIO (n o) f)
+bindIO = \x f -> x
+  -- Return
+  f
+
+  -- Run
+  (\p i n -> runIO p i (\o -> bindIO (n o) f))
 
   -- Exit always terminates
-  <2> c -> <2> c
-};
+  exit
+;
 
 seqIO = \x y -> bindIO x (const y) ;
 

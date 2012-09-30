@@ -65,32 +65,6 @@ putExpr (Lambda ns e) = scoped $ do
 
 putExpr (LetRec bs e) = scoped $ putBindings bs >> returns (putExpr e)
 
-putExpr (Constr t ns) = scoped $ do
-  put ("ireg = " ++ show t ++ ";")
-  unless (null ns) $ do
-    put ("vars = new Fun[" ++ show (length ns) ++ "];")
-    zipWithM_ putV ns [0..]
-  put "return stack.Pop ();"
- where
-  putV a n = do
-    put ("vars[" ++ show n ++ "] =")
-    indent (putExpr a)
-    put ";"
-
-putExpr (Case e ms) = scoped $ do
-  put "stack.Push (new Fun (delegate {"
-  indent $ do
-    put "switch (ireg) {"
-    indent $ do
-      mapM_ putMatch ms
-
-      put "default:"
-      put "  throw new CaseException (ireg);"
-    put "}"
-  put "}));"
-  br
-  returns $ putExpr e
-
 putExpr (Prim op a b) = scoped $ do
   put (show op ++ " (")
   indent $ putExpr a
@@ -99,17 +73,6 @@ putExpr (Prim op a b) = scoped $ do
   put ")"
 
 putExpr (Literal i) = put $ "lit (" ++ show i ++ ")"
-
-putMatch :: Match -> Gen ()
-putMatch Match{..} = do
-  put ("case " ++ show matchTag ++ ":")
-  indent $ do
-    let putV v n = put ("var _" ++ v ++ " = vars[" ++ show n ++"];")
-    zipWithM_ putV matchVars [0..]
-    put "vars = null;"
-    br
-    returns $ putExpr matchBody
-  br
 
 -- Helpers and minor functions
 

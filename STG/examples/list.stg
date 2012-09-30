@@ -1,18 +1,7 @@
-nil  = <0> ;
-cons = \x xs -> <1> x xs ;
+nil  = \     n c -> n ;
+cons = \x xs n c -> c x xs ;
 
-map = \f l ->
-  case l of {
-    <0> -> l
-
-    <1> x xs -> <1> (f x) (map f xs)
-  };
-
-sum = \l ->
-  case l of {
-    <0> -> #0
-
-    <1> x xs -> + x (sum xs)
-  };
+map = \f l -> l l (\x xs -> cons (f x) (map f xs)) ;
+sum = \l -> l #0 (\x xs -> + x (sum xs)) ;
 
 onetwothree = cons #1 (cons #2 (cons #3 nil))

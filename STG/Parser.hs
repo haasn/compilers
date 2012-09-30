@@ -17,7 +17,7 @@ parse = runParser program () ""
 -- Lexing rules and other helpers
 
 T.TokenParser{..} = T.makeTokenParser $ haskellStyle
-  { T.reservedNames = ["let", "in", "case", "of"]
+  { T.reservedNames = ["let", "in"]
   , T.identLetter   = alphaNum }
 
 var = identifier <?> "var"
@@ -40,8 +40,7 @@ binding = (,) <$> var <* op "=" <*> expr <?> "binding"
 -- Expression parsers
 
 expr :: Parser Expr
-expr = lambda <|> letRec <|> constr <|> caseOf <|> primop <|> app <|> atom
-       <?> "expression"
+expr = lambda <|> letRec <|> primop <|> app <|> atom <?> "expression"
 
 lambda :: Parser Expr
 lambda = Lambda <$ op "\\" <*> many var <* op "->" <*> expr <?> "lambda"
@@ -50,14 +49,6 @@ letRec :: Parser Expr
 letRec = LetRec <$> (reserved "let" *> manySep binding)
                 <*> (reserved "in"  *> expr)
                 <?> "let block"
-
-caseOf :: Parser Expr
-caseOf = Case <$> (reserved "case" *> expr)
-              <*> (reserved "of"   *> op "{" *> many match <* op "}")
-              <?> "case block"
-
-constr :: Parser Expr
-constr = Constr <$> tag <*> many atom <?> "constructor"
 
 lit :: Parser Expr
 lit = Literal <$ op "#" <*> natural <?> "integer literal"
@@ -74,11 +65,3 @@ atom = free <|> lit <|> parens expr <?> "atomic expression"
 
 free :: Parser Expr
 free = App <$> var <*> pure [] <?> "free variable"
-
--- Match parsers
-
-match :: Parser Match
-match = Match <$> tag <*> many var <* op "->" <*> expr <?> "pattern match"
-
-defaultMatch :: Parser Expr
-defaultMatch = reserved "default" *> op "->" *> expr <?> "default match"

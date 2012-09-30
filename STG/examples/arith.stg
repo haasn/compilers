@@ -1,36 +1,12 @@
-zero = <0> ;
-succ = \n -> <1> n ;
+zero = \  z s -> z ;
+succ = \n z s -> s n ;
 
-add = \x y ->
-  case x of {
-    <0>   -> y
+add = \x y -> x y (\n -> succ (add n y))  ;
+mul = \x y -> x x (\n -> add y (mul n y)) ;
 
-    <1> n -> succ (add n y)
-  };
+eq = \x y -> x (y true (const false)) (\n -> y false (\m -> eq n m)) ;
 
-mul = \x y ->
-  case x of {
-    <0>   -> x
-
-    <1> n -> add y (mul n y)
-  };
-
-eq = \x y ->
-  case x of {
-    <0>   -> case y of {
-      <0>   -> true
-      <1> m -> false }
-
-    <1> n -> case y of {
-      <0>   -> false
-      <1> m -> eq n m }
-  };
-
-toInt = \x ->
-  case x of {
-    <0>   -> #0
-    <1> n -> + #1 (toInt n)
-  };
+toInt = \x -> x #0 (\n -> + #1 (toInt n)) ;
 
 one   = succ zero ;
 two   = succ one  ;

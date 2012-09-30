@@ -14,8 +14,6 @@ data Expr
   = App Name [Expr]
   | Lambda [Name] Expr
   | LetRec [Binding] Expr
-  | Constr Tag [Expr]
-  | Case Expr [Match]
   | Literal Integer
   | Prim Op Expr Expr
   deriving Show
