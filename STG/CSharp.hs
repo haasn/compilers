@@ -74,9 +74,6 @@ putExpr (Literal i) = put $ "lit (" ++ show i ++ ")"
 
 -- Helpers and minor functions
 
-alloc :: Binding -> Gen
-alloc (n, _) = put ("var _" ++ n ++ " = new Fun ();")
-
 scoped :: Gen -> Gen
 scoped a = do
   put "new Fun (delegate {"
