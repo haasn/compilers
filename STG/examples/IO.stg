@@ -5,11 +5,22 @@ IO is treated as a free monad, ‘flattened’ here for simplicity:
 >   = Return a
 >   | forall i o. Run (FFI i o) (o -> IO a) i
 
+‘Run’ represents a call to an impure function (FFI i o), with a certain (pure)
+input ‘i’, and a continatuon ‘o -> IO a’ that produces the final value, in
+practice just ‘return’ for auto-lifted FFI actions.
+
+----
+
 Hidden implementation detail: FFI functions are built into the implementation
 and not defineable or addressable within the language. Their corresponding
 kleisli arrows can only be introduced via the special ‘extern’ construct.
 
 > type FFI = (->)
+
+.NET types are analogous to side-effectuous tuples, so in practice an impure
+FFI primitive is () -> (), auto-lifted to the corresponding pure arrow of type
+Kleisli IO () (). Since the church realization of () is ∀a. a -> a, operations
+on .NET values (essentially references) simply push continuations on the stack.
 
 -}
 
