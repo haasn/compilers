@@ -45,7 +45,7 @@ runIO    = \f n i p r -> r f n i ;
 
 extern action <Console.Write> ;
 extern func   <Console.ReadKey> ;
-extern func   <(char)> ; -- Casts are treated the same as functions between types
+extern func   <(char)> ; -- Casts are treated the same as functions
 extern field  <.KeyChar> ;
 extern action <Environment.Exit> ;
 
