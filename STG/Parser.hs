@@ -23,11 +23,11 @@ T.TokenParser{..} = T.makeTokenParser $ haskellStyle
   { T.reservedNames = ["let", "in", "extern", "func", "action"]
   , T.identLetter   = alphaNum }
 
-var = zEncodeString <$> quoted <|> identifier <?> "variable"
+var = zEncodeString <$> enclose '<' '>' <|> identifier <?> "variable"
 op  = reservedOp
 
-quoted :: Parser String
-quoted = symbol "<" *> many (noneOf ">") <* symbol ">"
+enclose :: Char -> Char -> Parser String
+enclose s e = symbol [s] *> many (noneOf [e]) <* symbol [e]
 
 manySep :: Parser a -> Parser [a]
 manySep p = p `sepBy` symbol ";"
@@ -41,7 +41,7 @@ defn :: Parser Definition
 defn = ffi <|> Binding <$> binding <?> "definition"
 
 ffi :: Parser Definition
-ffi = FFI <$ reserved "extern" <*> mode <*> quoted <?> "extern"
+ffi = FFI <$ reserved "extern" <*> mode <*> enclose '<' '>' <?> "extern"
   where mode = Func   <$ reserved "func"
            <|> Action <$ reserved "action"
            <|> Field  <$ reserved "field"
@@ -63,7 +63,7 @@ letRec = LetRec <$> (reserved "let" *> manySep binding)
                 <?> "let block"
 
 lit :: Parser Expr
-lit = Literal <$ symbol "#" <*> many (noneOf "#") <* symbol "#" <?> "literal"
+lit = Literal <$> enclose '#' '#' <?> "literal"
 
 app :: Parser Expr
 app = App <$> var <*> many atom <?> "application"
