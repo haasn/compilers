@@ -5,24 +5,16 @@ module STG.Types where
 type Name = String
 type Tag  = Int
 
-newtype Program = Program { bindings :: [Binding] }
-  deriving Show
+newtype Program = Program { defs :: [Definition] }
 
-type Binding = (Name, Expr)
+data Definition
+  = Binding (Name, Expr)
+  | FFI Mode String
+
+data Mode = Func | Action | Field
 
 data Expr
   = App Name [Expr]
   | Lambda [Name] Expr
-  | LetRec [Binding] Expr
-  | Literal Integer
-  | Prim Op Expr Expr
-  deriving Show
-
-data Op = Add | Mul | Sub | Div
-  deriving Show
-
-data Match = Match
-  { matchTag  :: Tag
-  , matchVars :: [Name]
-  , matchBody :: Expr
-  } deriving Show
+  | LetRec [(Name, Expr)] Expr
+  | Literal String

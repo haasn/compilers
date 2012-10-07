@@ -10,6 +10,8 @@ import Control.Monad.Reader
 import Control.Monad.Writer
 import qualified Data.DList as DL
 
+import Text.Encoding.Z
+
 type Gen = ReaderT Int (Writer (DL.DList Char)) ()
 
 runGen :: Gen -> String
@@ -23,17 +25,27 @@ putProgram Program{..} = do
   put "using System.Collections.Generic;"
   br
   put "static partial class STG {"
-  indent (putGlobal bindings)
+  indent (mapM_ putDefinition defs)
   put "}"
 
-putGlobal :: [Binding] -> Gen
-putGlobal = mapM_ $ \(n, b) -> do
+putDefinition :: Definition -> Gen
+putDefinition (Binding (n, b)) = do
   put("static Fun _" ++ n ++ " =")
   indent $ putExpr b
   put ";"
   br
 
-putBinding :: Binding -> Gen
+putDefinition (FFI mode body) = do
+  put("static Fun _" ++ zEncodeString body ++ " = ffi (delegate (dynamic p) {")
+  indent $ case mode of
+    Func   -> put ("return " ++ body ++ " (p); });")
+    Field  -> put ("return p" ++ body ++ "; });")
+    Action -> do
+      put(body ++ " (p);")
+      put "return null; });"
+  br
+
+putBinding :: (Name, Expr) -> Gen
 putBinding (n, b) = do
   put("_" ++ n ++ ".f = delegate {")
   returns (putExpr b)
@@ -63,14 +75,7 @@ putExpr (LetRec bs e) = scoped $ do
   mapM_ putBinding bs
   returns $ putExpr e
 
-putExpr (Prim op a b) = scoped $ do
-  put (show op ++ " (")
-  indent $ putExpr a
-  put ", "
-  indent $ putExpr b
-  put ")"
-
-putExpr (Literal i) = put $ "lit (" ++ show i ++ ")"
+putExpr (Literal s) = put $ "lit (" ++ s ++ ")"
 
 -- Helpers and minor functions
 

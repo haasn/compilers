@@ -7,7 +7,7 @@ flip  = \f x y -> f y x ;
 
 -- some primitive types
 
-unit  = \u -> u ; -- one
+unit  = \u -> u ;         -- one
 pair  = \x y f -> f x y ; -- product
-left  = \x l r -> l x ; -- sum
+left  = \x l r -> l x ;   -- sum
 right = \y l r -> r y

@@ -16,8 +16,8 @@ delegate Fun FunPtr ();
 // The main execution machine lives in its own class
 
 static partial class STG {
-  // Integer register, used to hold machine integers
-  static int ireg = 0;
+  // Dynamic register, used for all FFI operations
+  static dynamic reg = null;
 
   // Execution stack, used to hold call parameters
   static Stack<Fun> stack = new Stack<Fun> ();
@@ -26,97 +26,46 @@ static partial class STG {
   static void Main () {
     // Since C# doesn't optimize tail calls, we trampoline by having each
     // closure return the next continuation instead.
+
     var next = _unsafeRealMain;
 
     while (true)
       // Compute a single step and update the pointer
       next = next.f (); }
 
-  // Push an update continuation
-  static Fun update (Fun f) {
-    return new Fun (delegate {
-      stack.Push (new Fun (delegate {
-        // Remember the state after evaluation
-        var myireg = ireg;
-        // Update the referenced closure with a quasi-constructor
-        f.f = delegate {
-          ireg = myireg;
-          return stack.Pop (); };
-        return stack.Pop (); }));
-
-      return f; });}
-
-  // Primitive function to force evaluation and updating
-  static Fun _seq = new Fun (delegate {
-    return update (stack.Pop ()); });
-
-  // Literal constructor for some i which simply assigns ireg
-  static Fun lit (int i) {
-    return new Fun (delegate {
-      ireg = i;
-      return stack.Pop (); }); }
-
-  // Unsafe IO primitives
-  static Fun _unsafeTermination = new Fun(delegate {
-    throw new Exception ("Improper termination of IO action"); });
-
-  static Fun _unsafePutChar = new Fun (delegate {
+  // Primitive function to force FFI evaluation and updating
+  static Fun _ffiSeq = new Fun (delegate {
     var c = stack.Pop ();
+    var n = stack.Pop ();
+
     stack.Push (new Fun (delegate {
-      Console.Write ((char) ireg);
-      return _unit; }));
+      var myreg = reg;
+      c.f = delegate {
+        reg = myreg;
+        return stack.Pop (); };
+      return n; }));
+
     return c; });
 
-  static Fun _unsafeGetChar = new Fun (delegate {
-    stack.Pop (); // Unit, ignored
-    ireg = (int) Console.ReadKey (true).KeyChar;
-    return stack.Pop (); });
-
-  static Fun _unsafeExit = new Fun (delegate {
-    var code = stack.Pop ();
-    stack.Push (new Fun (delegate {
-      Environment.Exit (ireg);
-      return null; }));
-    return code; });
-
-  // Boring integer arithmetic primitives
-  static Fun Add (Fun a, Fun b) {
+  // Literal constructor for some p which simply assigns reg
+  static Fun lit (dynamic p) {
     return new Fun (delegate {
-      stack.Push (new Fun (delegate {
-        int it = ireg;
-        stack.Push (new Fun (delegate {
-          ireg += it;
-          return stack.Pop (); }));
-        return b; }));
-      return a; });}
+      reg = p;
+      return stack.Pop (); }); }
 
-  static Fun Mul (Fun a, Fun b) {
+  // FFI wrapper, lifts a native function to a Kleisli arrow in IO
+  static Fun ffi (Func<dynamic, dynamic> f) {
     return new Fun (delegate {
+      stack.Push (_returnIO);
       stack.Push (new Fun (delegate {
-        int it = ireg;
+        var p = stack.Pop ();
         stack.Push (new Fun (delegate {
-          ireg *= it;
+          reg = f (reg);
           return stack.Pop (); }));
-        return b; }));
-      return a; });}
+        return p; }));
+      return _runIO; }); }
 
-  static Fun Sub (Fun a, Fun b) {
-    return new Fun (delegate {
-      stack.Push (new Fun (delegate {
-        int it = ireg;
-        stack.Push (new Fun (delegate {
-          ireg -= it;
-          return stack.Pop (); }));
-        return b; }));
-      return a; });}
-
-  static Fun Div (Fun a, Fun b) {
-    return new Fun (delegate {
-      stack.Push (new Fun (delegate {
-        int it = ireg;
-        stack.Push (new Fun (delegate {
-          ireg /= it;
-          return stack.Pop (); }));
-        return b; }));
-      return a; });}
+  // Unsafe termination primitive
+  static Fun _unsafeTermination = new Fun (delegate {
+    throw new Exception ("Improper termination of IO action"); });
 }

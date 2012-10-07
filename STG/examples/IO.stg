@@ -3,24 +3,19 @@ IO is treated as a free monad, ‘flattened’ here for simplicity:
 
 > data IO a
 >   = Return a
->   | forall i o. Run (FFI i o) i (o -> IO a)
->   | Exit Int
+>   | forall i o. Run (FFI i o) (o -> IO a) i
 
-Hidden implementation detail. FFI functions are built into the
-implementation and not defineable within the language. They are
-prefixed by ‘unsafe’ to keep their name and intention recognizable.
+Hidden implementation detail: FFI functions are built into the implementation
+and not defineable or addressable within the language. Their corresponding
+kleisli arrows can only be introduced via the special ‘extern’ construct.
 
 > type FFI = (->)
 
-> unsafePutChar :: FFI Char ()
-> unsafeGetChar :: FFI () Char
-> unsafeExit    :: FFI Int ()
-
-Note: Char = Int internally
 -}
 
 -- These should only ever be called by the RTS - in fact, ‘unsafeRealMain’
--- is the only thing the RTS ever calls.
+-- is the only thing the RTS ever calls. Technically these would be implemented
+-- in the target language directly, but it's easier to just write them here.
 
 unsafeRealMain = unsafeLoopIO main ;
 
@@ -29,7 +24,7 @@ unsafeLoopIO = \a -> a
   (const unsafeTermination)
 
   -- Run
-  (\f i n ->
+  (\f n i ->
     let fi  = f i ;
         nfi = n fi ;
 
@@ -37,37 +32,33 @@ unsafeLoopIO = \a -> a
 	-- place. This is factored out to a primitive function which also
 	-- ensures that ‘fi’ is updated properly afterwards, so effects don't
 	-- get repeated.
-        ffi = seq fi nfi
+        ffi = ffiSeq fi nfi
     in unsafeLoopIO ffi)
-
-  -- Exit
-  unsafeExit
 ;
 
 -- Scott constructors
 
-returnIO = \x p r e     -> p x ;
-runIO    = \f i o p r e -> r f i o ;
-exit     = \c p r e     -> e c ;
+returnIO = \x     p r -> p x ;
+runIO    = \f n i p r -> r f n i ;
 
--- The publicly accessible IO versions of the primitives
+-- Some I/O primitives and their corresponding tidied up versions
 
-putChar  = \c -> runIO unsafePutChar c    returnIO ;
-getChar  =       runIO unsafeGetChar unit returnIO ;
+extern action Console.Write ;
+extern func   Console.ReadKey ;
+extern func   (char) ; -- Casts are treated the same as functions between types
+extern field  .KeyChar ;
+extern action Environment.Exit ;
+
+putChar = \c -> bindIO (<(char)> c) <Console.Write> ;
+getChar = bindIO (<Console.ReadKey> #true#) <.KeyChar> ;
+exit    = <Environment.Exit> ;
 
 -- Monadic binding primitives
 
-bindIO = \x f -> x
-  -- Return
-  f
-
-  -- Run
-  (\p i n -> runIO p i (\o -> bindIO (n o) f))
-
-  -- Exit always terminates
-  exit
-;
+bindIO = \x f -> x f (\p n -> runIO p (\o -> bindIO (n o) f)) ;
 
 seqIO = \x y -> bindIO x (const y) ;
 
-foreverIO = \a -> fix (seqIO a)
+foreverIO = \a -> fix (seqIO a) ;
+
+kleisliIO = \x y a -> bindIO (x a) y

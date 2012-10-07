@@ -6,8 +6,6 @@ mul = \x y -> x x (\n -> add y (mul n y)) ;
 
 eq = \x y -> x (y true (const false)) (\n -> y false (\m -> eq n m)) ;
 
-toInt = \x -> x #0 (\n -> + #1 (toInt n)) ;
-
 one   = succ zero ;
 two   = succ one  ;
 three = succ two

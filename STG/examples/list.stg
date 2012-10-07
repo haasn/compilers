@@ -2,6 +2,6 @@ nil  = \     n c -> n ;
 cons = \x xs n c -> c x xs ;
 
 map = \f l -> l l (\x xs -> cons (f x) (map f xs)) ;
-sum = \l -> l #0 (\x xs -> + x (sum xs)) ;
+sum = \l -> l zero (\x xs -> add x (sum xs)) ;
 
-onetwothree = cons #1 (cons #2 (cons #3 nil))
+onetwothree = cons one (cons two (cons three nil))
