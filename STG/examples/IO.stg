@@ -43,11 +43,11 @@ runIO    = \f n i p r -> r f n i ;
 
 -- Some I/O primitives and their corresponding tidied up versions
 
-extern action Console.Write ;
-extern func   Console.ReadKey ;
-extern func   (char) ; -- Casts are treated the same as functions between types
-extern field  .KeyChar ;
-extern action Environment.Exit ;
+extern action <Console.Write> ;
+extern func   <Console.ReadKey> ;
+extern func   <(char)> ; -- Casts are treated the same as functions between types
+extern field  <.KeyChar> ;
+extern action <Environment.Exit> ;
 
 putChar = \c -> bindIO (<(char)> c) <Console.Write> ;
 getChar = bindIO (<Console.ReadKey> #true#) <.KeyChar> ;
