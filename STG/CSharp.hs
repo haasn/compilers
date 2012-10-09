@@ -10,8 +10,6 @@ import Control.Monad.Reader
 import Control.Monad.Writer
 import qualified Data.DList as DL
 
-import Text.Encoding.Z
-
 type Gen = ReaderT Int (Writer (DL.DList Char)) ()
 
 runGen :: Gen -> String
@@ -35,14 +33,11 @@ putDefinition (Binding (n, b)) = do
   put ";"
   br
 
-putDefinition (FFI mode body) = do
-  put("static Fun _" ++ zEncodeString body ++ " = ffi (delegate (dynamic p) {")
+putDefinition (FFI mode name body) = do
+  put("static Fun _" ++ name ++ " = ffi (delegate (dynamic it) {")
   indent $ case mode of
-    Func   -> put ("return "  ++ body ++ " (p); });")
-    Field  -> put ("return p" ++ body ++ "; });")
-    Action -> do
-      put(body ++ " (p);")
-      put "return null; });"
+    Func   -> put ("return " ++ code body ++ " ;});")
+    Action -> put (code body ++ " ; return null;});")
   br
 
 putBinding :: (Name, Expr) -> Gen

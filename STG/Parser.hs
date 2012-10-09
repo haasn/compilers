@@ -5,8 +5,8 @@ module STG.Parser where
 
 import Control.Applicative hiding (many, (<|>))
 import Data.Char (isSpace)
+import Data.Monoid (Monoid, mconcat)
 
-import Text.Encoding.Z
 import Text.Parsec
 import Text.Parsec.Language (haskellStyle)
 import Text.Parsec.String
@@ -23,7 +23,7 @@ T.TokenParser{..} = T.makeTokenParser $ haskellStyle
   { T.reservedNames = ["let", "in", "extern", "func", "action"]
   , T.identLetter   = alphaNum }
 
-var = zEncodeString <$> enclose '<' '>' <|> identifier <?> "variable"
+var = identifier <?> "variable"
 op  = reservedOp
 
 enclose :: Char -> Char -> Parser String
@@ -31,6 +31,9 @@ enclose s e = symbol [s] *> many (noneOf [e]) <* symbol [e]
 
 manySep :: Parser a -> Parser [a]
 manySep p = p `sepBy` symbol ";"
+
+collect :: Monoid a => [Parser a] -> Parser a
+collect = fmap mconcat . sequence
 
 -- STG language parsers
 
@@ -41,10 +44,14 @@ defn :: Parser Definition
 defn = ffi <|> Binding <$> binding <?> "definition"
 
 ffi :: Parser Definition
-ffi = FFI <$ reserved "extern" <*> mode <*> enclose '<' '>' <?> "extern"
-  where mode = Func   <$ reserved "func"
-           <|> Action <$ reserved "action"
-           <|> Field  <$ reserved "field"
+ffi = FFI <$ reserved "extern" <*> mode <*> var <*> csharp <?> "extern"
+  where mode = Func   <$ reserved "func" <|> Action <$ reserved "action"
+
+csharp :: Parser CSharp
+csharp = CSharp <$ op "{" <*> collect [blob, option [] block, blob] <* op "}"
+ where
+  blob  = many (noneOf "{}")
+  block = collect [string "{", code <$> csharp, string "}"]
 
 binding :: Parser (Name, Expr)
 binding = (,) <$> var <* op "=" <*> expr <?> "binding"

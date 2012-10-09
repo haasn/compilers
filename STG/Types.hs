@@ -4,17 +4,20 @@ module STG.Types where
 
 type Name = String
 type Tag  = Int
+type Decl = (Name, Expr)
 
 newtype Program = Program { defs :: [Definition] }
 
 data Definition
-  = Binding (Name, Expr)
-  | FFI Mode String
+  = Binding Decl
+  | FFI Mode Name CSharp
 
-data Mode = Func | Action | Field
+data Mode = Func | Action
+
+newtype CSharp = CSharp { code :: String }
 
 data Expr
   = App Name [Expr]
   | Lambda [Name] Expr
-  | LetRec [(Name, Expr)] Expr
+  | LetRec [Decl] Expr
   | Literal String

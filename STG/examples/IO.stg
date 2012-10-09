@@ -77,16 +77,11 @@ foreverIO = \a -> fix (seqIO a) ;
 
 kleisliIO = \x y a -> bindIO (x a) y ;
 
--- Some I/O primitives and their corresponding tidied up versions
+-- Some example I/O primitives
 
-extern action <Console.WriteLine> ;
-extern action <Console.Write> ;
-extern func   <Console.ReadKey> ;
-extern func   <(char)> ; -- Casts are treated the same as functions
-extern field  <.KeyChar> ;
-extern action <Environment.Exit> ;
+extern action exit    { Environment.Exit (it)        } ;
+extern action print   { Console.WriteLine (it)       } ;
+extern action putChar { Console.Write ((char) it)    } ;
+extern func   readKey { Console.ReadKey (it).KeyChar } ;
 
-putChar = \c -> bindIO (<(char)> c) <Console.Write> ;
-getChar = bindIO (<Console.ReadKey> #true#) <.KeyChar> ;
-exit    = <Environment.Exit> ;
-print   = <Console.WriteLine>
+getChar = readKey #true#
