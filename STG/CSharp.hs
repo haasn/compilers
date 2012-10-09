@@ -38,7 +38,7 @@ putDefinition (Binding (n, b)) = do
 putDefinition (FFI mode body) = do
   put("static Fun _" ++ zEncodeString body ++ " = ffi (delegate (dynamic p) {")
   indent $ case mode of
-    Func   -> put ("return " ++ body ++ " (p); });")
+    Func   -> put ("return "  ++ body ++ " (p); });")
     Field  -> put ("return p" ++ body ++ "; });")
     Action -> do
       put(body ++ " (p);")

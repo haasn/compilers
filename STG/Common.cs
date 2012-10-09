@@ -56,7 +56,7 @@ static partial class STG {
   // FFI wrapper, lifts a native function to a Kleisli arrow in IO
   static Fun ffi (Func<dynamic, dynamic> f) {
     return new Fun (delegate {
-      stack.Push (_returnIO);
+      stack.Push (_returnIOF);
       stack.Push (new Fun (delegate {
         var p = stack.Pop ();
         stack.Push (new Fun (delegate {

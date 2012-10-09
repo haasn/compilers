@@ -1,13 +1,18 @@
 {-
 IO is treated as a free monad, ‘flattened’ here for simplicity:
 
-> data IO a
+> data IOF a
 >   = Return a
->   | forall i o. Run (FFI i o) (o -> IO a) i
+>   | forall i o. Run (FFI i o) (o -> IOF a) i
 
 ‘Run’ represents a call to an impure function (FFI i o), with a certain (pure)
 input ‘i’, and a continatuon ‘o -> IO a’ that produces the final value, in
 practice just ‘return’ for auto-lifted FFI actions.
+
+To make things more efficient, the Codensity transformation is applied on top
+of this base monad to form the actual IO.
+
+> type IO a = forall b. (a -> IOF b) -> IOF b
 
 ----
 
@@ -28,7 +33,7 @@ on .NET values (essentially references) simply push continuations on the stack.
 -- is the only thing the RTS ever calls. Technically these would be implemented
 -- in the target language directly, but it's easier to just write them here.
 
-unsafeRealMain = unsafeLoopIO main ;
+unsafeRealMain = unsafeLoopIO (lowerIO main) ;
 
 unsafeLoopIO = \a -> a
   -- Return
@@ -36,21 +41,41 @@ unsafeLoopIO = \a -> a
 
   -- Run
   (\f n i ->
-    let fi  = f i ;
-        nfi = n fi ;
+    let fi  = f i
 
-	-- Since ‘f’ has side effects, we need to force it for any IO to take
-	-- place. This is factored out to a primitive function which also
-	-- ensures that ‘fi’ is updated properly afterwards, so effects don't
-	-- get repeated.
-        ffi = ffiSeq fi nfi
-    in unsafeLoopIO ffi)
+    -- Since ‘f’ has side effects, we need to force it for any IO to take
+    -- place. This is factored out to a primitive function which also
+    -- ensures that ‘fi’ is updated properly afterwards, so effects don't
+    -- get repeated.
+    in ffiSeq fi (unsafeLoopIO (n fi)))
 ;
 
 -- Scott constructors
 
-returnIO = \x     p r -> p x ;
-runIO    = \f n i p r -> r f n i ;
+returnIOF = \x     p r -> p x ;
+runIOF    = \f n i p r -> r f n i ;
+
+-- Base monadic functions and codensity (un)lifting
+
+bindIOF = \x f -> x f (\p n -> runIOF p (\o -> bindIOF (n o) f)) ;
+
+lowerIO = \a -> a returnIOF ;
+
+raiseIO = bindIOF ;
+
+-- Lifted monadic functions
+
+runIO = \f n i -> raiseIO (runIOF f n i) ;
+
+returnIO = \a f -> f a ;
+
+bindIO = \m f c -> m (\a -> f a c) ;
+
+seqIO = \x y -> bindIO x (const y) ;
+
+foreverIO = \a -> fix (seqIO a) ;
+
+kleisliIO = \x y a -> bindIO (x a) y ;
 
 -- Some I/O primitives and their corresponding tidied up versions
 
@@ -64,14 +89,4 @@ extern action <Environment.Exit> ;
 putChar = \c -> bindIO (<(char)> c) <Console.Write> ;
 getChar = bindIO (<Console.ReadKey> #true#) <.KeyChar> ;
 exit    = <Environment.Exit> ;
-print   = <Console.WriteLine> ;
-
--- Monadic binding primitives
-
-bindIO = \x f -> x f (\p n -> runIO p (\o -> bindIO (n o) f)) ;
-
-seqIO = \x y -> bindIO x (const y) ;
-
-foreverIO = \a -> fix (seqIO a) ;
-
-kleisliIO = \x y a -> bindIO (x a) y
+print   = <Console.WriteLine>
