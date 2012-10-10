@@ -1,0 +1,8 @@
+-- IO-based random number generator
+
+extern func newRand { new Random (it) } ;
+extern func nextInt { it.Next () } ;
+
+printNext = \r -> bindIO (nextInt r) print ;
+
+main = bindIO (newRand #0#) (\r -> foreverIO (printNext r))
