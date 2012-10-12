@@ -35,7 +35,7 @@ putDefinition (Binding (n, b)) = do
 
 putDefinition (FFI mode arity name body) = do
   put("static Fun _" ++ name ++ " = ffi (" ++ show arity ++
-      ", delegate (dynamic _) {")
+      ", delegate (dynamic[] _) {")
   indent $ case mode of
     Func   -> put ("return " ++ code body ++ " ;});")
     Action -> put (code body ++ " ; return null;});")

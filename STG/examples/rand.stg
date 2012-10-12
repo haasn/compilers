@@ -5,4 +5,6 @@ extern func[1] nextInt { _[0].Next () } ;
 
 printNext = \r -> bindIO (nextInt r) print ;
 
-main = bindIO (newRand #0#) (\r -> foreverIO (printNext r))
+main = bindIO (newRand #0#) (\r1 ->
+       bindIO (newRand #0#) (\r2 ->
+       foreverIO (seqIO (printNext r1) (printNext r2))))
