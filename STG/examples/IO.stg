@@ -27,7 +27,7 @@ FFI primitive is () -> (), auto-lifted to the corresponding pure arrow of type
 Kleisli IO () (). Since the church realization of () is ∀a. a -> a, operations
 on .NET values (essentially references) simply push continuations on the stack.
 
-The type of inputs 'i' will always be an n-tuple, for arguments of arity n,
+The type of inputs ‘i’ will always be an n-tuple, for arguments of arity n,
 scott encoded eg.:
 
 > type Tuple0     = a -> a

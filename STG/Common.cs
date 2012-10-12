@@ -56,7 +56,7 @@ static partial class STG {
   // FFI wrapper, lifts a native function to a Kleisli arrow in IO
   static Fun ffi (int arity, Func<dynamic[], dynamic> f) {
     return new Fun (delegate {
-      // The arrow takes 'arity' parameters..
+      // The arrow takes ‘arity’ parameters..
       Fun[] vars = new Fun[arity];
       for (int i = 0; i < arity; i++) {
         vars[i] = stack.Pop(); }
@@ -78,9 +78,9 @@ static partial class STG {
 
       return _runIO; }); }
 
-  // Impure function lifter: accepts 'arity' arguments, evaluates them all
+  // Impure function lifter: accepts ‘arity’ arguments, evaluates them all
   // and stores them in a temporary arguments array, which is finally passed
-  // to the impure function 'f'
+  // to the impure function ‘f’
   static Fun liftn (int arity, dynamic[] args, Func<dynamic[], dynamic> f) {
     return new Fun (delegate {
       if (arity < args.Length)
@@ -89,6 +89,7 @@ static partial class STG {
       if (arity == 0) {
         reg = f (args);
         return stack.Pop (); }
+
       else {
         var p = stack.Pop ();
         stack.Push (liftn (arity - 1, args, f));
