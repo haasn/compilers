@@ -3,8 +3,8 @@
 extern func[1] newRand { new Random (_[0]) } ;
 extern func[1] nextInt { _[0].Next () } ;
 
-printNext = \r -> bindIO (nextInt r) print ;
+printNext = \r -> bind IO (nextInt r) print ;
 
-main = bindIO (newRand #0#) (\r1 ->
-       bindIO (newRand #0#) (\r2 ->
-       foreverIO (seqIO (printNext r1) (printNext r2))))
+main = bind IO (newRand #0#) (\r1 ->
+       bind IO (newRand #0#) (\r2 ->
+       forever IO (seq IO (printNext r1) (printNext r2))))

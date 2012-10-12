@@ -19,10 +19,10 @@ three = succ two  ;
 extern func[2] addInt32 { _[0] + _[1] } ;
 
 toInt32 = \i -> i
-  (returnIO #0#)
-  (\n -> bindIO (toInt32 n) (addInt32 #1#)) ;
+  (return IO #0#)
+  (\n -> bind IO (toInt32 n) (addInt32 #1#)) ;
 
-printNat = \n -> bindIO (toInt32 n) print ;
+printNat = \n -> bind IO (toInt32 n) print ;
 
 -- Instances for the examples in classes.stg
 

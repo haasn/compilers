@@ -14,7 +14,7 @@ concat = foldr append nil ;
 repeat = \x -> fix (cons x) ;
 
 -- :: Num a => [a] -> a
-sum = \numD -> numD (\plus mult fromNat -> foldr plus (fromNat zero)) ;
+sum = \nD -> foldr (plus nD) (fromNat nD zero) ;
 
 onetwothree = cons one (cons two (cons three nil)) ;
 
@@ -25,7 +25,7 @@ MonadList   = Monad returnList (bindFromJoin FunctorList concat) ;
 MonoidList  = Monoid nil append ;
 
 -- :: Monad m => [m a] -> m [a]
-sequence  = \mD -> mD (\fD ret bind -> foldr (liftM2 mD cons) (ret nil)) ;
+sequence  = \mD -> foldr (liftM2 mD cons) (return mD nil) ;
 sequence_ = \mD -> foldr (seq mD) (return mD unit) ;
 
 -- :: Monad m => (a -> m b) -> [m a] -> m [a]

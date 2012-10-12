@@ -40,11 +40,11 @@ scott encoded eg.:
 -- is the only thing the RTS ever calls. Technically these would be implemented
 -- in the target language directly, but it's easier to just write them here.
 
-unsafeRealMain = unsafeLoopIO (lowerIO main) ;
+unsafeRealMain = unsafePerformIO (lowerIO main) unsafeTermination ;
 
-unsafeLoopIO = \a -> a
+unsafePerformIO = \a -> a
   -- Return
-  (const unsafeTermination)
+  id
 
   -- Run
   (\f n i ->
@@ -54,7 +54,7 @@ unsafeLoopIO = \a -> a
     -- place. This is factored out to a primitive function which also
     -- ensures that ‘fi’ is updated properly afterwards, so effects don't
     -- get repeated.
-    in ffiSeq fi (unsafeLoopIO (n fi)))
+    in ffiSeq fi (unsafePerformIO (n fi)))
 ;
 
 -- Scott constructors
@@ -74,20 +74,17 @@ raiseIO = bindIOF ;
 
 runIO = \f n i -> raiseIO (runIOF f n i) ;
 
-returnIO = \a f -> f a ;
-
-bindIO = \m f c -> m (\a -> f a c) ;
-
-seqIO = seq MonadIO ;
-
-foreverIO = forever MonadIO ;
-
-kleisliIO = \x y a -> bindIO (x a) y ;
-
--- Various class instances
-
 FunctorIO = Functor (fmapDef MonadIO) ;
-MonadIO   = Monad FunctorIO returnIO bindIO ;
+
+MonadIO = Monad FunctorIO
+  -- return
+  (\a f -> f a)
+
+  -- bind
+  (\m f c -> m (\a -> f a c)) ;
+
+-- Convenience shortcut
+IO = MonadIO ;
 
 -- Some example I/O primitives
 

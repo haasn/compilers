@@ -1,13 +1,15 @@
-id    = \x -> x ;
-join  = \f x -> f x x ;
-const = \x y -> x ;
-ap    = \x y z -> x z (y z) ;
-fix   = \f -> let x = f x in x ;
-flip  = \f x y -> f y x ;
+id      = \x -> x ;
+joinFun = \f x -> f x x ;
+const   = \x y -> x ;
+apFun   = \x y z -> x z (y z) ;
+fix     = \f -> let x = f x in x ; -- more efficient than f (fix f)
+flip    = \f x y -> f y x ;
 
 -- some primitive types
 
 unit  = \u -> u ;         -- one
 pair  = \x y f -> f x y ; -- product
 left  = \x l r -> l x ;   -- sum
-right = \y l r -> r y
+right = \y l r -> r y ;
+
+diag = joinFun pair

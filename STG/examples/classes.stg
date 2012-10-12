@@ -17,17 +17,23 @@ data Num a = Num
 
 -}
 
-Num = \plus mult fromNat c -> c plus mult fromNat ;
+Num = \p m fN c -> c p m fN ;
+plus = \nD -> nD (\p m fN -> p) ;
+mult = \nD -> nD (\p m fN -> m) ;
+fromNat = \nD -> nD (\p m fN -> fN) ;
 
 Eq  = \eq c -> c eq ;
 
 -- data Ord a = Ord { eqI :: Eq a, compare :: a -> a -> Ordering }
 -- data Ordering = LT | EQ | GT
 
-Ord = \eqI compare c -> c eqI compare ;
+Ord = \eqD cmp c -> c eqD cmp ;
+compare = \oD -> oD (\eqD cmp -> cmp) ;
 
 LT = \l e g -> l ;
 EQ = \l e g -> e ;
 GT = \l e g -> g ;
 
-Monoid = \mempty mappend c -> c mempty mappend
+Monoid = \me ma c -> c me ma ;
+mempty = \mD -> mD (\me ma -> me) ;
+mappend = \mD -> mD (\me ma -> ma)

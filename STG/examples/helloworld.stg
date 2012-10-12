@@ -1,2 +1,2 @@
-main = seqIO (print #"Hello, world!"#)
-      (seqIO (printNat (add three three)) (exit #0#))
+main = seq IO (print #"Hello, world!"#)
+      (seq IO (printNat (add three three)) (exit #0#))

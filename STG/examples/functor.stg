@@ -1,23 +1,27 @@
 -- class Functor f where fmap :: (a -> b) -> f a -> f b
 
-Functor = \fmap c -> c fmap ;
+Functor = \f c -> c f ;
+fmap = \fD -> fD id ;
 
 -- class Functor m => Monad m where
 --   return :: a -> m a
 --   bind :: m a -> (a -> m b) -> m b
 
-Monad = \funct ret bind c -> c funct return bind ;
-return = \mD -> mD (\fD ret bind -> ret) ;
+Monad = \fD r b c -> c fD r b ;
+return = \mD -> mD (\fD r b -> r) ;
+bind = \mD -> mD (\fD r b -> b) ;
 
 -- :: Functor m => (m (m b) -> m b) -> m a -> (a -> m b) -> m b
-bindFromJoin = \fD join ma f -> fD (\fmap -> join (fmap f ma)) ;
+bindFromJoin = \fD join ma f -> join (fmap fD f ma) ;
 
 -- :: Monad m => m a -> m b -> mb
-seq = \mD x y -> mD (\fD ret bind -> bind x (const y)) ;
+seq = \mD x y -> bind mD x (const y) ;
+
+-- :: Monad m => (a -> m b) -> (b -> m c) -> a -> m c
+kleisli = \mD x y a -> bind mD (x a) y ;
 
 -- :: Monad m => (a -> b) -> m a -> m b
-fmapDef = \mD f ma -> mD (\fD ret bind -> bind ma (\a -> ret (f a))) ;
+fmapDef = \mD f ma -> bind mD ma (\a -> return mD (f a)) ;
 
 -- :: Monad m => (a -> b -> c) -> m a -> m b -> m c
-liftM2 = \mD f x y -> mD (\fD ret bind ->
-  bind x (\a -> bind y (\b -> ret (f a b))))
+liftM2 = \mD f x y -> bind mD x (\a -> bind mD y (\b -> return mD (f a b)))
