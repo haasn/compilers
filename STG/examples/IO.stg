@@ -78,11 +78,16 @@ returnIO = \a f -> f a ;
 
 bindIO = \m f c -> m (\a -> f a c) ;
 
-seqIO = \x y -> bindIO x (const y) ;
+seqIO = seq MonadIO ;
 
-foreverIO = \a -> fix (seqIO a) ;
+foreverIO = forever MonadIO ;
 
 kleisliIO = \x y a -> bindIO (x a) y ;
+
+-- Various class instances
+
+FunctorIO = Functor (fmapDef MonadIO) ;
+MonadIO   = Monad FunctorIO returnIO bindIO ;
 
 -- Some example I/O primitives
 

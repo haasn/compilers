@@ -21,7 +21,7 @@ parse = runParser program () ""
 
 T.TokenParser{..} = T.makeTokenParser $ haskellStyle
   { T.reservedNames = ["let", "in", "extern", "func", "action"]
-  , T.identLetter   = alphaNum }
+  , T.identLetter   = alphaNum <|> char '_' }
 
 var = identifier <?> "variable"
 op  = reservedOp
@@ -46,7 +46,7 @@ defn = ffi <|> Binding <$> binding <?> "definition"
 ffi :: Parser Definition
 ffi = FFI <$ reserved "extern" <*> mode <*> arity <*> var <*> csharp
  where
-  mode  = Func   <$ reserved "func" <|> Action <$ reserved "action"
+  mode  = Func <$ reserved "func" <|> Action <$ reserved "action"
   arity = op "[" *> natural <* op "]"
 
 csharp :: Parser CSharp
@@ -68,8 +68,7 @@ lambda = Lambda <$ op "\\" <*> many var <* op "->" <*> expr <?> "lambda"
 
 letRec :: Parser Expr
 letRec = LetRec <$> (reserved "let" *> manySep binding)
-                <*> (reserved "in"  *> expr)
-                <?> "let block"
+                <*> (reserved "in"  *> expr)            <?> "let block"
 
 lit :: Parser Expr
 lit = Literal <$> enclose '#' '#' <?> "literal"

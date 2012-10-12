@@ -1,0 +1,23 @@
+-- class Functor f where fmap :: (a -> b) -> f a -> f b
+
+Functor = \fmap c -> c fmap ;
+
+-- class Functor m => Monad m where
+--   return :: a -> m a
+--   bind :: m a -> (a -> m b) -> m b
+
+Monad = \funct ret bind c -> c funct return bind ;
+return = \mD -> mD (\fD ret bind -> ret) ;
+
+-- :: Functor m => (m (m b) -> m b) -> m a -> (a -> m b) -> m b
+bindFromJoin = \fD join ma f -> fD (\fmap -> join (fmap f ma)) ;
+
+-- :: Monad m => m a -> m b -> mb
+seq = \mD x y -> mD (\fD ret bind -> bind x (const y)) ;
+
+-- :: Monad m => (a -> b) -> m a -> m b
+fmapDef = \mD f ma -> mD (\fD ret bind -> bind ma (\a -> ret (f a))) ;
+
+-- :: Monad m => (a -> b -> c) -> m a -> m b -> m c
+liftM2 = \mD f x y -> mD (\fD ret bind ->
+  bind x (\a -> bind y (\b -> ret (f a b))))

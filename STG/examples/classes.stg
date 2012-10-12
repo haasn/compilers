@@ -1,0 +1,33 @@
+{-
+
+Classes implemented as higher-order algebraic data types, eg.
+
+class Num a where
+  (+) :: a -> a -> a
+  (*) :: a -> a -> a
+  ...
+
+translates to:
+
+data Num a = Num
+  { (+) :: a -> a -> a
+  , (*) :: a -> a -> a
+  , ...
+  }
+
+-}
+
+Num = \plus mult fromNat c -> c plus mult fromNat ;
+
+Eq  = \eq c -> c eq ;
+
+-- data Ord a = Ord { eqI :: Eq a, compare :: a -> a -> Ordering }
+-- data Ordering = LT | EQ | GT
+
+Ord = \eqI compare c -> c eqI compare ;
+
+LT = \l e g -> l ;
+EQ = \l e g -> e ;
+GT = \l e g -> g ;
+
+Monoid = \mempty mappend c -> c mempty mappend

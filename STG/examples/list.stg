@@ -1,7 +1,36 @@
 nil  = \     n c -> n ;
 cons = \x xs n c -> c x xs ;
 
-map = \f l -> l l (\x xs -> cons (f x) (map f xs)) ;
-sum = \l -> l zero (\x xs -> add x (sum xs)) ;
+returnList = \x -> cons x nil ;
 
-onetwothree = cons one (cons two (cons three nil))
+map = \f l -> l l (\x xs -> cons (f x) (map f xs)) ;
+
+foldr = \f d l -> l d (\x xs -> f x (foldr f d xs)) ;
+
+append = \x y -> foldr cons y x ;
+
+concat = foldr append nil ;
+
+repeat = \x -> fix (cons x) ;
+
+-- :: Num a => [a] -> a
+sum = \numD -> numD (\plus mult fromNat -> foldr plus (fromNat zero)) ;
+
+onetwothree = cons one (cons two (cons three nil)) ;
+
+-- various class instances
+
+FunctorList = Functor map ;
+MonadList   = Monad returnList (bindFromJoin FunctorList concat) ;
+MonoidList  = Monoid nil append ;
+
+-- :: Monad m => [m a] -> m [a]
+sequence  = \mD -> mD (\fD ret bind -> foldr (liftM2 mD cons) (ret nil)) ;
+sequence_ = \mD -> foldr (seq mD) (return mD unit) ;
+
+-- :: Monad m => (a -> m b) -> [m a] -> m [a]
+mapM  = \mD f xs -> sequence  mD (map f xs) ;
+mapM_ = \mD f xs -> sequence_ mD (map f xs) ;
+
+-- :: Monad m => m a -> m ()
+forever = \mD x -> sequence_ mD (repeat x)

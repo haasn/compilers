@@ -1,10 +1,14 @@
+-- Natural numbers (peano)
+
 zero = \  z s -> z ;
 succ = \n z s -> s n ;
 
 add = \x y -> x y (\n -> succ (add n y))  ;
 mul = \x y -> x x (\n -> add y (mul n y)) ;
 
-eq = \x y -> x (y true (const false)) (\n -> y false (\m -> eq n m)) ;
+eqNat = \x y -> x (y true (const false)) (\n -> y false (\m -> eqNat n m)) ;
+
+cmpNat = \x y -> x (y EQ (const LT)) (\xx -> y GT (cmpNat xx)) ;
 
 one   = succ zero ;
 two   = succ one  ;
@@ -18,4 +22,13 @@ toInt32 = \i -> i
   (returnIO #0#)
   (\n -> bindIO (toInt32 n) (addInt32 #1#)) ;
 
-printNat = \n -> bindIO (toInt32 n) print
+printNat = \n -> bindIO (toInt32 n) print ;
+
+-- Instances for the examples in classes.stg
+
+NumNat = Num add mul id ;
+EqNat = Eq eqNat ;
+OrdNat = Ord EqNat cmpNat ;
+
+MonoidNatAdd = Monoid zero add ;
+MonoidNatMul = Monoid one  mul
