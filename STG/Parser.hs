@@ -44,8 +44,10 @@ defn :: Parser Definition
 defn = ffi <|> Binding <$> binding <?> "definition"
 
 ffi :: Parser Definition
-ffi = FFI <$ reserved "extern" <*> mode <*> var <*> csharp <?> "extern"
-  where mode = Func   <$ reserved "func" <|> Action <$ reserved "action"
+ffi = FFI <$ reserved "extern" <*> mode <*> arity <*> var <*> csharp
+ where
+  mode  = Func   <$ reserved "func" <|> Action <$ reserved "action"
+  arity = op "[" *> natural <* op "]"
 
 csharp :: Parser CSharp
 csharp = CSharp <$ op "{" <*> collect [blob, option [] block, blob] <* op "}"

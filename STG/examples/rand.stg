@@ -1,7 +1,7 @@
 -- IO-based random number generator
 
-extern func newRand { new Random (it) } ;
-extern func nextInt { it.Next () } ;
+extern func[1] newRand { new Random (_[0]) } ;
+extern func[1] nextInt { _[0].Next () } ;
 
 printNext = \r -> bindIO (nextInt r) print ;
 

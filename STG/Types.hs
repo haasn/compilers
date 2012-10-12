@@ -2,15 +2,15 @@ module STG.Types where
 
 -- Spineless, tagless, G-machine
 
-type Name = String
-type Tag  = Int
-type Decl = (Name, Expr)
+type Name  = String
+type Arity = Integer
+type Decl  = (Name, Expr)
 
 newtype Program = Program { defs :: [Definition] }
 
 data Definition
   = Binding Decl
-  | FFI Mode Name CSharp
+  | FFI Mode Arity Name CSharp
 
 data Mode = Func | Action
 

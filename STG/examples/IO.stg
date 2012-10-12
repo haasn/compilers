@@ -6,7 +6,7 @@ IO is treated as a free monad, ‘flattened’ here for simplicity:
 >   | forall i o. Run (FFI i o) (o -> IOF a) i
 
 ‘Run’ represents a call to an impure function (FFI i o), with a certain (pure)
-input ‘i’, and a continatuon ‘o -> IO a’ that produces the final value, in
+input ‘i’, and a continuation ‘o -> IO a’ that produces the final value, in
 practice just ‘return’ for auto-lifted FFI actions.
 
 To make things more efficient, the Codensity transformation is applied on top
@@ -22,10 +22,17 @@ kleisli arrows can only be introduced via the special ‘extern’ construct.
 
 > type FFI = (->)
 
-.NET types are analogous to side-effectuous tuples, so in practice an impure
+.NET types are analogous to side-effectuous units, so in practice an impure
 FFI primitive is () -> (), auto-lifted to the corresponding pure arrow of type
 Kleisli IO () (). Since the church realization of () is ∀a. a -> a, operations
 on .NET values (essentially references) simply push continuations on the stack.
+
+The type of inputs 'i' will always be an n-tuple, for arguments of arity n,
+scott encoded eg.:
+
+> type Tuple0     = a -> a
+> type Tuple1 x   = (x -> a) -> a
+> type Tuple2 x y = (x -> y -> a) -> a
 
 -}
 
@@ -79,9 +86,9 @@ kleisliIO = \x y a -> bindIO (x a) y ;
 
 -- Some example I/O primitives
 
-extern action exit    { Environment.Exit (it)        } ;
-extern action print   { Console.WriteLine (it)       } ;
-extern action putChar { Console.Write ((char) it)    } ;
-extern func   readKey { Console.ReadKey (it).KeyChar } ;
+extern action[1] exit    { Environment.Exit (_[0])        } ;
+extern action[1] print   { Console.WriteLine (_[0])       } ;
+extern action[1] putChar { Console.Write ((char) _[0])    } ;
+extern func  [1] readKey { Console.ReadKey (_[0]).KeyChar } ;
 
 getChar = readKey #true#

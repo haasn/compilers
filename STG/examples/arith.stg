@@ -8,4 +8,14 @@ eq = \x y -> x (y true (const false)) (\n -> y false (\m -> eq n m)) ;
 
 one   = succ zero ;
 two   = succ one  ;
-three = succ two
+three = succ two  ;
+
+-- Conversion to native C# integers
+
+extern func[2] addInt32 { _[0] + _[1] } ;
+
+toInt32 = \i -> i
+  (returnIO #0#)
+  (\n -> bindIO (toInt32 n) (addInt32 #1#)) ;
+
+printNat = \n -> bindIO (toInt32 n) print
