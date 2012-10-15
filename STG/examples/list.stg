@@ -33,4 +33,4 @@ mapM  = \mD f xs -> sequence  mD (map f xs) ;
 mapM_ = \mD f xs -> sequence_ mD (map f xs) ;
 
 -- :: Monad m => m a -> m ()
-forever = \mD x -> sequence_ mD (repeat x)
+forever = \mD x -> sequence_ mD (repeat x) ;

@@ -93,4 +93,4 @@ extern action[1] print   { Console.WriteLine (_[0])       } ;
 extern action[1] putChar { Console.Write ((char) _[0])    } ;
 extern func  [1] readKey { Console.ReadKey (_[0]).KeyChar } ;
 
-getChar = readKey #true#
+getChar = readKey #true# ;

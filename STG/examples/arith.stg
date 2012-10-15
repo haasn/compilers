@@ -31,4 +31,4 @@ EqNat = Eq eqNat ;
 OrdNat = Ord EqNat cmpNat ;
 
 MonoidNatAdd = Monoid zero add ;
-MonoidNatMul = Monoid one  mul
+MonoidNatMul = Monoid one  mul ;

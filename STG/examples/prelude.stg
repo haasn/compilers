@@ -12,4 +12,4 @@ pair  = \x y f -> f x y ; -- product
 left  = \x l r -> l x ;   -- sum
 right = \y l r -> r y ;
 
-diag = joinFun pair
+diag = joinFun pair ;

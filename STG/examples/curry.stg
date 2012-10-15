@@ -4,4 +4,4 @@ curry = \f x y -> f (pair x y) ;
 
 -- uncurry f (x,y) = f x y
 
-uncurry = \f p -> p f
+uncurry = \f p -> p f ;

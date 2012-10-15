@@ -27,4 +27,4 @@ fmapDef = \mD f ma -> bind mD ma (\a -> return mD (f a)) ;
 liftM2 = \mD f x y -> bind mD x (\a -> bind mD y (\b -> return mD (f a b))) ;
 
 -- :: Monad m => m a -> m ()
-void = \mD x -> seq mD x (return mD unit)
+void = \mD x -> seq mD x (return mD unit) ;

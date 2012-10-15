@@ -36,4 +36,4 @@ GT = \l e g -> g ;
 
 Monoid = \me ma c -> c me ma ;
 mempty = \mD -> mD (\me ma -> me) ;
-mappend = \mD -> mD (\me ma -> ma)
+mappend = \mD -> mD (\me ma -> ma) ;

@@ -30,7 +30,7 @@ enclose :: Char -> Char -> Parser String
 enclose s e = symbol [s] *> many (noneOf [e]) <* symbol [e]
 
 manySep :: Parser a -> Parser [a]
-manySep p = p `sepBy` symbol ";"
+manySep p = p `sepEndBy` symbol ";"
 
 collect :: Monoid a => [Parser a] -> Parser a
 collect = fmap mconcat . sequence

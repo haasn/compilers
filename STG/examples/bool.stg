@@ -5,4 +5,4 @@ and = \x y -> x y x ;
 or  = \x y -> x x y ;
 
 MonoidBoolAnd = Monoid true and ;
-MonoidBoolOr  = Monoid false or
+MonoidBoolOr  = Monoid false or ;
