@@ -40,7 +40,7 @@ scott encoded eg.:
 -- is the only thing the RTS ever calls. Technically these would be implemented
 -- in the target language directly, but it's easier to just write them here.
 
-unsafeRealMain = unsafePerformIO (lowerIO main) unsafeTermination ;
+unsafeRealMain = unsafePerformIO (lowerIO (void IO main)) unsafeTermination ;
 
 unsafePerformIO = \a -> a
   -- Return
