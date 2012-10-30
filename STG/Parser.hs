@@ -60,24 +60,19 @@ binding = (,) <$> var <* op "=" <*> expr <?> "binding"
 
 -- Expression parsers
 
-expr :: Parser Expr
+expr, lambda, letRec, lit, app, atom, free :: Parser Expr
+
 expr = lambda <|> letRec <|> app <|> atom <?> "expression"
 
-lambda :: Parser Expr
 lambda = Lambda <$ op "\\" <*> many var <* op "->" <*> expr <?> "lambda"
 
-letRec :: Parser Expr
 letRec = LetRec <$> (reserved "let" *> manySep binding)
                 <*> (reserved "in"  *> expr)            <?> "let block"
 
-lit :: Parser Expr
 lit = Literal <$> enclose '#' '#' <?> "literal"
 
-app :: Parser Expr
 app = App <$> var <*> many atom <?> "application"
 
-atom :: Parser Expr
 atom = lit <|> free <|> parens expr <?> "atomic expression"
 
-free :: Parser Expr
 free = App <$> var <*> pure []
